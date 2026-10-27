@@ -1,0 +1,1451 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maths Tutor - development transcript</title>
+<style>
+:root{--bg:#fbfbfd;--fg:#1c1c20;--mut:#63636b;--line:#e2e2e8;--card:#fff;--acc:#2b5bd7;--codebg:#f4f4f8}
+@media(prefers-color-scheme:dark){:root{--bg:#131317;--fg:#e9e9ee;--mut:#9a9aa4;--line:#2c2c34;--card:#1a1a20;--acc:#7aa0ff;--codebg:#101014}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:40px 16px 80px}
+header h1{font-size:1.9rem;margin:0 0 6px}
+header p{color:var(--mut);margin:4px 0}
+.bar{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0;margin:22px 0;z-index:5}
+button{font:inherit;cursor:pointer;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:7px 13px;margin-right:8px}
+button:hover{border-color:var(--acc);color:var(--acc)}
+nav ol{list-style:none;padding:0;margin:0;display:grid;gap:4px}
+nav a{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:baseline;padding:7px 10px;border-radius:7px;text-decoration:none;color:var(--fg);border:1px solid transparent}
+nav a:hover{background:var(--card);border-color:var(--line)}
+nav span{color:var(--mut);font-variant-numeric:tabular-nums;font-size:.85rem}
+.turn{border:1px solid var(--line);border-radius:12px;background:var(--card);margin:16px 0;padding:18px 20px;scroll-margin-top:70px}
+.turn h2{font-size:1.12rem;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
+.num{background:var(--acc);color:#fff;border-radius:6px;padding:2px 9px;font-size:.82rem}
+h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:0 0 7px}
+.prompt pre{white-space:pre-wrap;word-wrap:break-word;margin:0;padding:13px 15px;background:var(--codebg);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;font:inherit}
+.resp{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.resp>summary{cursor:pointer;font-size:.74rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);list-style:none}
+.resp>summary::-webkit-details-marker{display:none}
+.resp>summary::before{content:"\25B8  ";color:var(--acc)}
+.resp[open]>summary::before{content:"\25BE  "}
+.resp>summary:hover{color:var(--acc)}
+.inner{padding-top:12px}
+.p{white-space:pre-wrap;word-wrap:break-word;margin:0 0 11px}
+.h{display:block;margin:15px 0 5px;font-size:1rem}
+pre.code,pre.tbl{overflow-x:auto;background:var(--codebg);border:1px solid var(--line);border-radius:8px;padding:11px 13px;margin:0 0 11px;font:13px/1.5 ui-monospace,Consolas,monospace}
+pre.tbl{white-space:pre}
+code{background:var(--codebg);padding:1px 5px;border-radius:4px;font:13px ui-monospace,Consolas,monospace}
+pre.code code{background:none;padding:0}
+.acts{margin-top:10px;font-size:.88rem}
+.acts summary{cursor:pointer;color:var(--mut)}
+.acts ol{max-height:300px;overflow:auto;background:var(--codebg);border-radius:8px;padding:10px 10px 10px 32px;margin:8px 0 0}
+.acts li{font:12px/1.6 ui-monospace,Consolas,monospace;word-break:break-all}
+footer{color:var(--mut);font-size:.84rem;border-top:1px solid var(--line);margin-top:34px;padding-top:14px}
+</style></head><body><div class="wrap">
+<header>
+  <h1>Syllabus-Grounded Maths Tutor</h1>
+  <p>Development transcript &middot; built with Claude using spec-driven development</p>
+</header>
+<div class="bar">
+  <button onclick="document.querySelectorAll('details.resp').forEach(function(d){d.open=true})">Expand all</button>
+  <button onclick="document.querySelectorAll('details').forEach(function(d){d.open=false})">Collapse all</button>
+</div>
+<nav><ol><li><a href="#t1"><span>1</span>Specification for the tutor web app</a></li>
+<li><a href="#t2"><span>2</span>Building the app: NCERT corpus, frontend, backend</a></li>
+<li><a href="#t3"><span>3</span>Fine-tuning for NCERT-faithful explanations and figures</a></li>
+<li><a href="#t4"><span>4</span>Designing the pipeline and the fine-tuning plan</a></li>
+<li><a href="#t5"><span>5</span>Choosing the model to fine-tune for diagrams</a></li>
+<li><a href="#t6"><span>6</span>Integrating the fine-tuned diagram model</a></li>
+<li><a href="#t7"><span>7</span>Settling the scope and the model integration</a></li>
+<li><a href="#t8"><span>8</span>Correcting the NCERT symbol extraction</a></li>
+<li><a href="#t9"><span>9</span>Typesetting the mathematics with KaTeX</a></li>
+<li><a href="#t10"><span>10</span>Using the diagram model across every branch</a></li>
+<li><a href="#t11"><span>11</span>First end-to-end problem through the pipeline</a></li>
+<li><a href="#t12"><span>12</span>Separating explanation from diagram generation</a></li>
+<li><a href="#t13"><span>13</span>The two-model architecture</a></li>
+<li><a href="#t14"><span>14</span>Test problems of increasing difficulty</a></li>
+<li><a href="#t15"><span>15</span>What the verifier does, and why the model is still needed</a></li>
+<li><a href="#t16"><span>16</span>Checking that the solution came from the model</a></li>
+<li><a href="#t17"><span>17</span>Rebuilding the interface as a web app</a></li>
+<li><a href="#t18"><span>18</span>Presenting solutions as mathematical proof</a></li>
+<li><a href="#t19"><span>19</span>Improving the speed of the pipeline</a></li>
+<li><a href="#t20"><span>20</span>Problems across three branches</a></li>
+<li><a href="#t21"><span>21</span>Generating any topic on demand</a></li>
+<li><a href="#t22"><span>22</span>Final architecture and hosting plan</a></li></ol></nav>
+
+<section class="turn" id="t1">
+  <h2><span class="num">Turn 1</span> Specification for the tutor web app</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>now, create a detailed spec.md for both the projects.
+for the web-app one, I want to fine-tune an opensourse llm for creating algebra and trignometry graphs and for geometry diagrams (interactive diagrams using geogebra API) that are in the NCERT books of class 9 to 12.
+for this, tell me what all to do. (what all to download). The main idea in the AI tutor-web-app is that the sudent can name a topic or subtopic in class 9th to 12th maths syllabus, then the llm gives a detailed, structured reply exactly based on the syllabus and the class fro that topic (as it will already be trained on that data). (we can use rag also for the retrieval if tuning on that data is not very effective). 
+for ex: I want to learn class 10 quadratic equations.
+then the llm either trained or used RAG to repky to the qwery based on the class 10 quadratic equation (detailed concepts overview with proper interactive graphs of equations (geogebra API) ) with good explanation etc.
+this is the complete idea behind it.
+now create a detailed spec.md and a tasks.md with checkboxes to tick off what is done for the math-tutor-app project.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Two significant changes to project 2: GeoGebra instead of JSXGraph, and a fine-tuning experiment. Let me write both specs, starting with the web app.
+
+Now project 1&#x27;s detailed spec, then the cleanup:
+
+Now the cleanup. Surveying first so I don&#x27;t delete anything load-bearing:
+
+Done. Both specs written, and cleaned up.
+
+<b class='h'>Project 1 — [ride-pooling-study/spec.md](ride-pooling-study/spec.md)</b>
+
+Technical spec, not a restatement of the brief. Contains: all 25 verified columns with their use, the identification strategy (S / RU / RM) with its honest limit stated, <strong>exact derived-quantity formulas in SQL</strong>, the filter table with observed row counts for each rule, the estimation design (exact matching strata, stratum-weighted estimator, cluster bootstrap over strata), module layout, and the audit results.
+
+Three things in there worth knowing because they&#x27;ll bite otherwise:
+- <strong>Filter rule 6 keeps <code>platform_take &lt; 0</code></strong> — 8,769,980 rows (13.73%). Those aren&#x27;t errors, they&#x27;re guarantees and the regulated pay floor, and by group it&#x27;s S 13.2% / RM 35.6% / <strong>RU 48.6%</strong>.
+- <strong>Report the fraction of RM trips retained by matching.</strong> An estimate on 40% of the sample is a different claim from one on 90%.
+- <code>matched</code> is a <strong>reserved word in duckdb</strong> — cost me a query earlier.
+
+<b class='h'>Project 2 — [math-tutor-app/spec.md](math-tutor-app/spec.md) + [tasks.md](math-tutor-app/tasks.md)</b>
+
+Rebuilt around GeoGebra and the fine-tune. The framing that makes it a real ML project:
+
+<strong>Four arms, one task, one eval set — A base · B RAG · C fine-tuned · D both.</strong> That comparison *is* the contribution, and it holds whichever way it lands. RAG is Tier 1 and ships regardless; the fine-tune is gated. If RAG beats the fine-tune, that&#x27;s a finding, not a failure.
+
+<strong>The metric that decides everything: figure render rate</strong>, measured by a <strong>headless render check</strong> — Playwright loads a real applet, executes the commands, collects <code>evalCommand</code> return values (GeoGebra returns <code>false</code> on failure), reads back the object list, screenshots, and checks non-degeneracy. Without that, &quot;the model generates figures&quot; is an unverified claim. It&#x27;s task T2.4 and it&#x27;s the most important engineering in the project.
+
+<strong>Second metric, and the one the product exists for: syllabus fidelity</strong>, split into *omission* and *leakage*. Ask for class 10 quadratics and you must not get complex roots. The mechanism that enforces it is a <strong>hard class filter on retrieval</strong> — and the ablation isolating that filter&#x27;s effect is a cheap, clean result.
+
+<strong>Training data doesn&#x27;t exist, so it gets built by validated distillation:</strong> Claude generates candidate lessons → the same validator stack → only what renders enters the set. So the fine-tuned model trains exclusively on figures known to render. Target ~1,000–1,500 examples; 10 held-out nodes <strong>frozen in week 1</strong> and excluded by assertion.
+
+<b class='h'>What to download</b>
+NCERT class 9–12 maths + Exemplars + the rationalised-syllabus documents (~220 MB, <code>ncert.nic.in</code>) · Qwen2.5-7B-Instruct as primary base · <code>transformers peft trl accelerate bitsandbytes datasets</code> for QLoRA on free Kaggle/Colab GPU · <code>bge-small-en-v1.5</code> + FAISS + PyMuPDF for RAG · GeoGebra <code>deployggb.js</code>, KaTeX, Playwright.
+
+<b class='h'>Three things I&#x27;d flag hard</b>
+1. <strong>Week 1 T1.3 is the highest-risk task</strong>: NCERT PDFs may render equations as *images*, which would gut text extraction. Test it before committing, with three fallbacks already written down.
+2. <strong>Read the GeoGebra licence in week 1.</strong> Free for educational use, but verify and record the version. The command layer is deliberately engine-agnostic so JSXGraph is a cheap fallback.
+3. <strong>Don&#x27;t assume model licences.</strong> Qwen2.5 is Apache-2.0 for most sizes but not all — check each model card and record it.
+
+<b class='h'>Cleanup</b>
+
+<strong>Deleted:</strong> the three rejected idea dossiers (6 files) · a dead 49 MB <code>.part</code> file · duplicate <code>.stdout</code> logs · a misnested directory tree from an earlier <code>cd</code> mistake · 5 empty scaffold dirs not in either plan.
+
+<strong>Kept, moved:</strong> the ride-pooling background dossier → <code>ride-pooling-study/report/</code>. Its tiered data-availability audit and dead-ends list isn&#x27;t duplicated anywhere, so I moved rather than deleted it.
+
+<strong>Added:</strong> <code>.gitignore</code> for both — project 2&#x27;s excludes the NCERT corpus and any derived training data, since the corpus is copyrighted and must not be redistributed.
+
+<code>math-tutor-app</code> is 61 KB of documents, ready to start. <code>ride-pooling-study</code> is 2.6 GB, nearly all of it the trip data.</div><details class="acts"><summary>6 tool actions</summary><ol><li>Write: e:\AIDS\Project\math-tutor-app\spec.md</li><li>Write: e:\AIDS\Project\math-tutor-app\tasks.md</li><li>Write: e:\AIDS\Project\ride-pooling-study\spec.md</li><li>Bash: echo &quot;=== root ===&quot;; ls -la | grep -v &#x27;^total&#x27;
+echo; echo &quot;=== ride-pooling-study: empty d</li><li>Bash: set -e
+echo &quot;=== 1. rejected-idea dossiers (all ideas in these were rejected) -&gt; delete ==</li><li>Bash: printf &#x27;%s\n&#x27; &#x27;data/raw/&#x27; &#x27;data/interim/&#x27; &#x27;data/processed/&#x27; &#x27;*.parquet&#x27; &#x27;*.part&#x27; &#x27;__pycach</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t2">
+  <h2><span class="num">Turn 2</span> Building the app: NCERT corpus, frontend, backend</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>start creating the web-app and download all the materials (NCERT 9th to 12th).
+build the frontend and the backenf for the webapp and other things that do not need anything from me.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Starting the build. First, checking the toolchain and probing the NCERT URL pattern:
+
+Pattern confirmed. Writing the downloader and starting it in the background:
+
+Class 9 genuinely has 8 chapters in the current edition — good thing I checked rather than assumed. Let me build while the download runs:
+
+Now the backend. Starting with the lesson schema and the GeoGebra command allowlist — the contracts everything else depends on:
+
+Now the validators — schema conformance and the GeoGebra command linter:
+
+Linter catches every failure mode. NCERT complete: <strong>49 chapters, 243 MB</strong>. Now the highest-risk task — does text extraction actually work on these PDFs?
+
+Console encoding, not extraction. Fixing and re-running:
+
+T1.3 answered decisively. Let me get the full chapter list to author the syllabus graph:
+
+<strong>Major finding.</strong> Class 9 is a completely new NCF-2023 edition — chapters are now *&quot;Orienting Yourself: The Use of Coordinates&quot;*, *&quot;The World of Numbers&quot;*, *&quot;Predicting What Comes Next&quot;*. Nothing like the old structure. Let me extract section headings to build the syllabus graph from the books themselves rather than from memory:
+
+Class 9&#x27;s new edition maps beautifully onto the engines — Ch 5 is pure circle geometry. Let me see the rest:
+
+Section structure extracted. Now the syllabus graph — built from the real book structure, not from memory:
+
+Section regex is too strict — several chapters clearly have more sections. Loosening it:
+
+The heredoc mangled the escapes. Fixing the regex directly:
+
+Section extraction has hit diminishing returns on PDF layout — it did its main job (catching that class 9 is a new edition). Rather than burn time on regex archaeology, I&#x27;ll top up the thin nodes with a curated supplement:
+
+<strong>T1.4 passes</strong> — 20 nodes, 83 concepts, acyclic, zero errors. Now the backend API and the GeoGebra render pipeline:
+
+Now a hand-written reference lesson — the known-good example that becomes the few-shot seed and the validator&#x27;s test:
+
+Validator works — and it caught a real bug in my slug function: it truncates mid-word at 48 chars. Fixing:
+
+Clean pass, 100% concept coverage. Let me verify the API runs, then build the frontend:
+
+Backend live and working. Now the frontend — Next.js with the GeoGebra renderer:
+
+Now the lesson page and a demo route that renders the reference lesson end to end:
+
+Typecheck clean. Building and verifying it renders:
+
+Now T2.4 — the headless render check, the most important validator in the project:
+
+The acceptance test: it must pass good specs *and* catch deliberately broken ones for different reasons.
+
+GeoGebra applets load slowly — running in the background:
+
+Still loading applets. Let me finish T1.5 and the README while it runs:
+
+45% is far too much to hold out from 20 nodes — and it grabbed the reference-lesson node, which is the few-shot seed. Fixing both:
+
+Applet never loads — <code>setContent</code> + <code>networkidle</code> isn&#x27;t waiting for deployggb.js. Fixing the boot sequence:
+
+The heredoc mangled <code>\n</code> again. Fixing directly:
+
+<code>GGBApplet</code> loads but <code>appletOnLoad</code> never fires — the applet bundle itself isn&#x27;t initialising. Let me debug it directly:
+
+Debug script was outside the project so couldn&#x27;t resolve playwright. Re-running from the project root:
+
+<strong>Root cause found.</strong> The applet *does* inject, but <code>appletOnLoad</code> never fires because GeoGebra throws <code>SecurityError: Failed to read the &#x27;cookie&#x27; property</code> — <code>page.setContent()</code> creates an <code>about:blank</code>-origin document where cookie access is denied. Serving from a real origin fixes it:
+
+Applet now works and <strong>all 6 broken specs fail for 6 different reasons</strong> — the validator does its job. But the good specs also fail. Let me see exactly which commands GeoGebra rejected:
+
+Two distinct bugs, both real:
+
+1. **<code>evalCommand</code> returns <code>false</code> for *scripting* commands** (<code>SetValue</code>, <code>SetColor</code>, <code>SetCaption</code>…) because they create no object — that&#x27;s success, not failure. My check misread it.
+2. <strong>The first applet isn&#x27;t construction-ready</strong> when the API object first appears, so spec 1 lost everything.
+
+<strong>T2.4 acceptance criterion met exactly</strong>: all 3 good specs pass, all 6 broken specs fail — each for a different reason. <code>3/9</code> is the intended result, since 6 were built to fail.
+
+Weeks 1–2 are built and passing. Everything not needing you is done.
+
+<b class='h'>What&#x27;s working</b>
+
+<strong>Backend</strong> — FastAPI, live at <code>:8000</code>. <code>/health</code> · <code>/syllabus</code> · <code>/syllabus/{node}</code> · <code>/syllabus/class/{n}</code> · <code>/validate/commands</code> · <code>/validate/lesson</code> · <code>/next/{node}</code>.
+
+<strong>Frontend</strong> — Next.js + Tailwind, builds clean, running at <code>:3000</code>. <code>GeoGebraFigure.tsx</code> executes a command list in an embedded applet and surfaces which commands GeoGebra rejected. <code>/demo</code> renders the reference lesson end to end with live draggable figures.
+
+<strong>Validators</strong> — command linter, schema + syllabus-boundary validator, and the headless render check.
+
+<b class='h'>Two findings that changed the project</b>
+
+<strong>1. Class 9 is a completely new NCF-2023 edition.</strong> Chapters are now *&quot;Orienting Yourself: The Use of Coordinates&quot;*, *&quot;The World of Numbers&quot;*, *&quot;I&#x27;m Up and Down, and Round and Round&quot;* (circles), *&quot;Predicting What Comes Next&quot;* (sequences). <strong>8 chapters, not 12.</strong> Building the syllabus graph from memory would have produced something that doesn&#x27;t match the books students actually hold — so I built it <strong>from the PDFs</strong> instead. It happens to map well: Ch 5 is pure circle geometry, Ch 2 and 4 are graph-native.
+
+<strong>2. Equations are images, worst in class 10</strong> (T1.3, the risk the spec flagged). Prose extracts richly at 1,408 chars/page, but class-10 chapters show 0–1 maths symbols and 10–47 images/page against a ~2/page structural rate. Verdict *partial* → <strong>strategy (b)</strong>: prose for retrieval, the syllabus concept list for the class boundary, ~50 hand-transcribed formulas. Reasoning and rejected alternatives in [docs/extraction-decision.md](math-tutor-app/docs/extraction-decision.md). Not fatal.
+
+<b class='h'>The render check passes its acceptance test</b></div><pre class="code"><code>PASS  good_quadratic-equations          cmds= 9 objs= 4 vis= 4
+PASS  good_solution-of-a-quadratic-equa cmds=11 objs= 5 vis= 5
+PASS  good_nature-of-roots              cmds= 9 objs= 6 vis= 5
+FAIL  bad_rejected_command      COMMAND_REJECTED, NOTHING_VISIBLE
+FAIL  bad_undefined_object      COMMAND_REJECTED, NOTHING_VISIBLE
+FAIL  bad_blank_board           NOTHING_VISIBLE
+FAIL  bad_coincident_points     COINCIDENT_POINTS
+FAIL  bad_slider_range          UNDEFINED_OBJECT, NOTHING_VISIBLE, BAD_SLIDER
+FAIL  bad_syntax                COMMAND_REJECTED, NOTHING_VISIBLE</code></pre><div class="p">3/9 is the target — 6 were built to fail, each for a *different* reason. Screenshots in <code>data/shots/</code>.
+
+<strong>Two GeoGebra traps cost me real time and are now documented:</strong>
+- <code>page.setContent()</code> gives an <code>about:blank</code> origin where GeoGebra throws <code>SecurityError: Failed to read the &#x27;cookie&#x27; property</code> and never loads. The harness must be served from a real HTTP origin.
+- <strong><code>evalCommand</code> returns <code>false</code> for scripting commands</strong> (<code>SetValue</code>, <code>SetColor</code>, <code>SetCaption</code>…) because they create no object. That&#x27;s success, not rejection — reading it naively marks every styled figure broken.
+
+<b class='h'>Status</b></div><pre class="tbl">| Task | State |
+|---|---|
+| T1.2 NCERT download | done — 49 chapters, 244 MB |
+| T1.3 Extraction feasibility | done — strategy (b) |
+| T1.4 Syllabus graph | done — 20 nodes, 83 concepts, acyclic, 0 errors |
+| T1.5 Held-out nodes frozen | done — 5/20, stratified by engine |
+| T2.1–T2.4 Schema, linter, validator, render check | done |
+| Backend + frontend | done |</pre><div class="p">Held-out set: I initially generated 9/20 (45%) and it grabbed the reference-lesson node. Corrected to <strong>5/20 (25%)</strong>, stratified across all three engines, with the few-shot seed explicitly excluded from the pool.
+
+<b class='h'>Two things need you</b>
+
+1. <strong>T1.1 — GeoGebra licence.</strong> Free for educational use, but read the current terms, confirm this project sits inside them, and save the version to <code>docs/geogebra-terms-2026-08.md</code>. The command layer is engine-agnostic, so JSXGraph is a cheap fallback if not.
+2. <strong>Week 5 needs an Anthropic API key</strong> for building training data by validated distillation — used only there, never in serving.
+
+Next up (T2.5): the validator test suite, ≥30 cases with every failure mode covered.</div><details class="acts"><summary>76 tool actions</summary><ol><li>Bash: echo &quot;=== toolchain ===&quot;; node -v 2&gt;/dev/null || echo &quot;node MISSING&quot;; npm -v 2&gt;/dev/null |</li><li>Bash: probe() { printf &quot;%-20s &quot; &quot;$1&quot;; curl -sIL --max-time 20 -A &quot;Mozilla/5.0&quot; &quot;https://ncert.ni</li><li>Bash: p2() { printf &quot;%-72s &quot; &quot;$(echo $1 | sed &#x27;s|.*/||&#x27;)&quot;; curl -sIL --max-time 20 -A &quot;Mozilla/5</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\download_ncert.py</li><li>Bash: Start NCERT textbook download in background</li><li>Bash: Run NCERT downloader in foreground to see errors</li><li>Bash: sleep 30; tail -4 logs/download_ncert.log
+echo; echo &quot;=== investigate: class 9 shows only </li><li>Bash: tail -4 logs/download_ncert.log
+echo; echo &quot;=== class 9: probe chapters 9-13 (expected 12 </li><li>Bash: Resume download and install PyMuPDF</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\schemas\lesson.schema.json</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\schemas\command_allowlist.json</li><li>Write: e:\AIDS\Project\math-tutor-app\src\verifiers\ggb_lint.py</li><li>Bash: python src/verifiers/ggb_lint.py
+echo; echo &quot;=== NCERT download progress ===&quot;; tail -3 log</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\extract_test.py</li><li>Bash: Run the NCERT extraction feasibility test</li><li>Bash: python - &lt;&lt;&#x27;PY&#x27;
+import pathlib
+p = pathlib.Path(r&#x27;E:/AIDS/Project/math-tutor-app/src/backe</li><li>Bash: python - &lt;&lt;&#x27;PY&#x27;
+import json,sys,pathlib
+sys.stdout.reconfigure(encoding=&#x27;utf-8&#x27;)
+r=json.lo</li><li>Bash: python - &lt;&lt;&#x27;PY&#x27;
+import pymupdf, pathlib, re, sys
+sys.stdout.reconfigure(encoding=&#x27;utf-8&#x27;)
+</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\extract_sections.py</li><li>Bash: Extract chapter and section structure from NCERT PDFs</li><li>Bash: python src/backend/extract_sections.py 2&gt;&amp;1 | sed -n &#x27;70,220p&#x27;</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\build_syllabus.py</li><li>Bash: Build and validate the syllabus graph</li><li>Bash: python - &lt;&lt;&#x27;PY&#x27;
+import pathlib
+p = pathlib.Path(r&#x27;E:/AIDS/Project/math-tutor-app/src/backe</li><li>Bash: grep -n &quot;SECTION_RE = &quot; src/backend/extract_sections.py</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\extract_sections.py</li><li>Bash: Re-extract sections and rebuild syllabus graph</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\build_syllabus.py</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\build_syllabus.py</li><li>Bash: Rebuild syllabus graph with curated supplement</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\app.py</li><li>Write: e:\AIDS\Project\math-tutor-app\src\verifiers\lesson_validate.py</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\schemas\reference_lesson.json</li><li>Bash: Install deps and validate the reference lesson</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\build_syllabus.py</li><li>Bash: Rebuild graph and re-validate reference lesson</li><li>Bash: Start API and smoke-test endpoints</li><li>Bash: Scaffold Next.js frontend</li><li>Write: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\GeoGebraFigure.tsx</li><li>Write: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\LessonView.tsx</li><li>Bash: Create demo and home pages, typecheck</li><li>Bash: Build the Next.js frontend</li><li>Bash: Start frontend and install Playwright for render check</li><li>Write: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Bash: Run headless render check acceptance test</li><li>Bash: Run headless render check in background</li><li>Bash: cat &gt; docs/extraction-decision.md &lt;&lt;&#x27;EOF&#x27;
+# T1.3 — NCERT text-extraction decision
+
+**Date:</li><li>Bash: tail -20 logs/render_check.log 2&gt;/dev/null || echo &quot;still running...&quot;</li><li>Read: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Freeze held-out nodes (T1.5)</li><li>Bash: Re-freeze held-out nodes at 25%, excluding reference</li><li>Bash: cat logs/render_check.log 2&gt;/dev/null | tail -20; echo &quot;---&quot;; ls -la data/shots 2&gt;/dev/nul</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Bash: Re-run render check with fixed boot sequence</li><li>Write: e:\AIDS\Project\math-tutor-app\README.md</li><li>Bash: cat logs/render_check.log; echo &quot;---shots---&quot;; ls data/shots 2&gt;/dev/null</li><li>Bash: sed -n &#x27;210,218p&#x27; src/verifiers/render_check.mjs</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Bash: Run headless render check acceptance test</li><li>Bash: Wait for render check to finish</li><li>Bash: Debug why GeoGebra applet does not initialise headless</li><li>Bash: Wait for and read debug output</li><li>Read: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Debug GeoGebra applet load from project root</li><li>Bash: Wait for GeoGebra debug result</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Bash: Run render check with local http origin fix</li><li>Bash: Wait for render check result</li><li>Bash: python - &lt;&lt;&#x27;PY&#x27;
+import json, pathlib, sys
+sys.stdout.reconfigure(encoding=&#x27;utf-8&#x27;)
+r = jso</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Bash: Re-run render check with both fixes</li><li>Bash: Wait for render check result</li><li>Bash: rm -f dbg.mjs
+python - &lt;&lt;&#x27;PY&#x27;
+import pathlib,re
+p=pathlib.Path(r&#x27;E:/AIDS/Project/math-tuto</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t3">
+  <h2><span class="num">Turn 3</span> Fine-tuning for NCERT-faithful explanations and figures</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>I want fine-tuning for proper explaining the concepts as explained in ncert books and also proper pipeline for their graph, diagrams and equations visual representations.
+do that now. (rag will be used to just retrieve the informationa nd fine-tuned open sourse llm will explain it like a tutor with interactive diagrams and detailed explanations etc)</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">This is exactly the fine-tune track — and you have a <code>kaggle-finetune</code> skill for the training half. Loading it, and checking what&#x27;s runnable locally:
+
+<strong>228 records</strong> (204 train / 24 val), multi-granularity, p90 ≈ 3.1k tokens. <strong>③ — the generation + eval harness</strong>, the same one that will judge every arm and every epoch:
+
+<strong>④ — launching the RAG baseline now</strong> (qwen2.5:7b on CPU, 5 held-out nodes — this will grind for a while in the background):
+
+While it generates, <strong>⑤ — the Kaggle notebook</strong>, in the skill&#x27;s exact format (numbered pasteable cells, expected outputs, run order):
+
+First node still generating — CPU prompt-eval on ~7k tokens is the slow part. Meanwhile, staging the Kaggle upload folder so only one command is left for you:
+
+Now the per-branch packages. Reworking the dataset builder to emit four self-contained Kaggle packages — one per engine plus the combined:
+
+The heredoc half-applied. Fixing both spots with direct edits:
+
+Phone answer is in — I&#x27;ll include it at the end. Fixing the remaining broken f-string and building the packages:
+
+All four packages built. Now the single parameterised notebook — one <code>BRANCH</code> variable drives everything, so the same cells train all four models:
+
+Everything&#x27;s in place. Summary of both threads:
+
+<b class='h'>1 · Per-branch fine-tuning — ready for Kaggle</b>
+
+<strong>Four self-contained packages under <code>finetune/</code></strong>, one Kaggle dataset each:</div><pre class="tbl">| package | model | nodes | train/val | held-out | epochs |
+|---|---|---|---|---|---|
+| <code>all/</code> | <code>ncert-tutor</code> (fallback) | 15 | 204/24 | 5 | 3 |
+| <code>e1-algebra/</code> | <code>ncert-tutor-e1</code> | 9 | 129/12 | 3 | 3 |
+| <code>e2-trigonometry/</code> | <code>ncert-tutor-e2</code> | 3 | 31/5 | 1 | 5 |
+| <code>e3-geometry/</code> | <code>ncert-tutor-e3</code> | 3 | 39/12 | 1 | 5 |</pre><div class="p">Each folder has <code>sft_train.jsonl</code> / <code>sft_val.jsonl</code> / branch-filtered <code>heldout-nodes.txt</code> / <code>syllabus-graph.yaml</code> / <code>dataset-metadata.json</code>. The data is the 15 render-verified lessons decomposed into 4 task types, with class-filtered NCERT context baked into prompts, under the exact prompt contract the eval harness uses — and the system prompt teaches every GeoGebra rule we proved by probing (app restrictions, reserved names, explicit <code>*</code>, named points).
+
+<strong>[finetune/KAGGLE_CELLS.md](math-tutor-app/finetune/KAGGLE_CELLS.md)</strong> has the complete recipe in your skill&#x27;s format: cell 0 picks the branch (the *only* cell you edit between runs), cells 1–8 with expected outputs, upload commands, the Quick-Save → <code>kaggle kernels output</code> download path (the download button breaks on big zips), <strong>epoch selection by local render rate — never the last epoch by default</strong>, and GGUF → <code>E:\Ollama\ollama create ncert-tutor-e1</code>. All four runs ≈ 1.5 h of your ~30 h weekly quota. Serving dispatches by <code>node.engine</code>.
+
+Two honesty notes, both written into the docs: <strong>e2/e3 will memorise</strong> (31–39 records — the held-out render gate is the guard, val loss is noise there), and <strong>the NCERT corpus never goes to Kaggle</strong> (copyright), so Kaggle generations measure the adapter alone; the local harness re-runs winners *with* retrieval.
+
+<strong>Your to-do list (only things needing your account/hands):</strong>
+1. Edit <code>YOURUSER</code> in the four <code>dataset-metadata.json</code> files → run the four <code>kaggle datasets create</code> commands (Step 0 in KAGGLE_CELLS.md).
+2. Run the notebook per branch (edit cell 0 only).
+3. Quick-Save → <code>kaggle kernels output</code> → run the three local gate commands per epoch → set <code>BEST</code> in cell 8 → download GGUF → <code>ollama create</code>.
+
+<b class='h'>2 · Phone monitoring — yes, built in</b>
+
+<strong>Remote Control</strong> connects the Claude mobile app (or claude.ai/code in a phone browser) to this exact local session:
+
+1. In this terminal: type <strong><code>/remote-control</code></strong> (or start future sessions with <code>claude remote-control</code>).
+2. Press <strong>spacebar</strong> for a QR code, scan it from the Claude app (<strong>Code</strong> tab) — or just pick the session from the list at claude.ai/code.
+3. From the phone you can: watch progress live, <strong>send new instructions</strong>, <strong>approve/deny tool permissions</strong>, attach photos, get push notifications when something finishes or I need a decision.
+
+Requirements: Pro/Max plan, logged in via claude.ai account (not API key), Claude Code v2.1.176+. The laptop must stay on and online — execution stays local; the phone is a remote head. Optional: <code>/config</code> → &quot;Enable Remote Control for all sessions&quot; so it&#x27;s always on. If the laptop can&#x27;t stay on, the alternative is starting a cloud session at claude.ai/code (runs on Anthropic infra), but this session&#x27;s local state doesn&#x27;t auto-hand-off there.
+
+<b class='h'>3 · Meanwhile, running</b>
+
+The <strong>RAG baseline</strong> (<code>qwen2.5:7b</code> via your Ollama, 5 held-out nodes) is grinding on CPU — first node still generating after ~15 min, which is expected at ~5 tok/s with a 7k-token prompt. It&#x27;ll complete in the background over the next hour; results land in <code>report/runs/rag_qwen2.5-7b_*/</code> and go through the same render gate. That&#x27;s the number the fine-tuned models have to beat.</div><details class="acts"><summary>19 tool actions</summary><ol><li>Skill: </li><li>Bash: Check Ollama and torch availability</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\prompts.py</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\build_dataset.py</li><li>Bash: Build the SFT dataset</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\generate_eval.py</li><li>Bash: Launch RAG baseline on held-out nodes</li><li>Write: e:\AIDS\Project\math-tutor-app\notebooks\KAGGLE_FINETUNE.md</li><li>Bash: Check baseline generation progress</li><li>Bash: Stage Kaggle upload folder and update README</li><li>Bash: Wait for the first held-out lesson to generate</li><li>Agent: Phone monitoring for CC session</li><li>Bash: Rework dataset builder into per-branch packages and run</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\build_dataset.py</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\build_dataset.py</li><li>Bash: Build per-branch packages</li><li>Bash: rm -f notebooks/KAGGLE_FINETUNE.md &amp;&amp; rmdir notebooks 2&gt;/dev/null; echo &quot;old notebook remo</li><li>Write: e:\AIDS\Project\math-tutor-app\finetune\KAGGLE_CELLS.md</li><li>Bash: Write finetune README, update main README and gitignore</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t4">
+  <h2><span class="num">Turn 4</span> Designing the pipeline and the fine-tuning plan</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>do deep research on how will all this pipeline should be constructed and how the models to be fine-tunes and with what datasets..</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">I&#x27;ll do this properly — real research across the distinct angles, then a concrete design. Fanning out first.
+
+Six research threads running. While they work, I&#x27;ll check something none of them covers — whether Qwen2.5-7B is still the right base model, given how much has shipped since.
+
+Confirmed a strong lever. Checking what our allowlist already encodes, since a grammar could be generated from it:
+
+GGBench looks directly on-point — a geometry benchmark with executable GeoGebra code. Fetching it:
+
+Major find — let me verify its contents properly.
+
+Excellent — GGBench gives me hard baseline numbers. Checking whether its data is actually usable:
+
+21 MB — downloading to check if the GeoGebra code is actually extractable:
+
+This is exactly our format. Quantifying how much of it we can actually use:
+
+GGBench converts almost directly — 86% of its commands are already in our allowlist. Let me prove it renders in *our* harness before recommending it:
+
+Understood — full rewrite of spec.md and tasks.md once the research lands. First, the decisive test: does GGBench code actually render in our harness?
+
+Objects are being created and figures drawn — so it&#x27;s specific commands failing. Let me see which:
+
+That&#x27;s a false positive in *our* verifier — <code>SetLineStyle</code>/<code>SetFilling</code> are scripting commands, which legitimately return false. Checking our exemption list:
+
+Real bug in our verifier. Fixing it with a general rule rather than a longer hardcoded list:
+
+100% render. Now verifying the fix didn&#x27;t weaken our adversarial regression suite:
+
+Rich findings landing. One agent stalled waiting on its own sub-agents — nudging it while the others finish.
+
+Testing a key feasibility claim from the RAG findings — dense retrieval without torch, via Ollama:
+
+Key decisions are crystallizing. Let me pre-fetch the embedding model the RAG findings recommend, so the plan rests on a verified capability:
+
+Styling-stripped GGBench figures have a median of 14 steps — nearly identical to our authored band. Verifying the stripped form still renders:
+
+40/40. GGBench is fully validated as training data. Verifying the dense-retrieval leg now works without torch:
+
+Weak separation — EmbeddingGemma needs its task prefixes. Testing properly:
+
+GeoGebra licence finding is important — I&#x27;ll record it. Meanwhile, running a larger GGBench validation in the background to get an honest yield number:
+
+While that runs, let me close the long-pending GeoGebra licence question, which the research just answered:
+
+You&#x27;ve hit your session limit · resets 7:10pm (Asia/Kolkata)</div><details class="acts"><summary>52 tool actions</summary><ol><li>Agent: Research diagram-code generation</li><li>Agent: Research geometry synthetic data</li><li>Agent: Research LoRA fine-tuning SOTA</li><li>Agent: Research RAG + RAFT + retrieval</li><li>Agent: Research verifier-in-loop training</li><li>Agent: Research tutoring data and pipelines</li><li>ToolSearch: </li><li>WebSearch: </li><li>WebSearch: </li><li>WebFetch: </li><li>WebSearch: </li><li>WebFetch: </li><li>WebSearch: </li><li>WebFetch: </li><li>Bash: Inspect command allowlist structure</li><li>WebSearch: </li><li>WebFetch: </li><li>WebFetch: </li><li>WebFetch: </li><li>WebFetch: </li><li>Read: E:\.claude\projects\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37ed44\tool-results\webf</li><li>Read: E:\.claude\projects\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37ed44\tool-results\webf</li><li>Read: E:\.claude\projects\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37ed44\tool-results\webf</li><li>WebFetch: </li><li>WebFetch: </li><li>Bash: Check size of GGBench text files</li><li>Bash: Download and inspect GGBench JSON schema</li><li>Bash: Inspect GGBench record fields</li><li>Bash: Analyze GGBench GeoGebra command coverage vs our allowlist</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\build_ggbench.py</li><li>Bash: Convert GGBench sample to render specs</li><li>Bash: Render-check GGBench sample in our harness</li><li>Bash: Inspect render failure detail structure</li><li>Bash: Find scripting regex in render check</li><li>Bash: Read render check context around scripting regex</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Bash: Re-run GGBench probe after verifier fix</li><li>Bash: Locate adversarial regression fixtures</li><li>Bash: Rebuild specs for accepted lessons regression</li><li>Bash: Regression check all 61 accepted figures</li><li>ToolSearch: </li><li>SendMessage: </li><li>Bash: Check Ollama models and bm25s installability</li><li>SendMessage: </li><li>Bash: Pull embedding model for dense retrieval leg</li><li>Bash: Measure GGBench figure complexity vs our distribution</li><li>Bash: Render-check styling-stripped GGBench figures</li><li>Bash: Test Ollama embeddings for semantic retrieval</li><li>Bash: Test embeddinggemma with correct task prefixes</li><li>Bash: Build 200-figure GGBench validation sample</li><li>Bash: Render-check 200 GGBench figures</li><li>WebFetch: </li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t5">
+  <h2><span class="num">Turn 5</span> Choosing the model to fine-tune for diagrams</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>what if we train a 4B or 7B parameter on the data in the geometry-gen folder?
+will that be good enough to create diagrams for the web-app or will that not be able to do so.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Good question — and it&#x27;s the right one, because model size and *data* are separate constraints here. Let me get evidence on both rather than reason from priors.
+
+Measured: <strong>3B = 13.95 tok/s, 7B = 6.74 tok/s</strong> — roughly inverse-linear, so 4B ≈ 11 tok/s. And their guideline&#x27;s reason for 14B is revealing:
+
+&gt; *&quot;The largest code-specialised dense model that fits one 16 GB card.&quot;*
+
+That&#x27;s a <strong>free-GPU budget argument, not evidence that 7B failed</strong> — there&#x27;s no smaller-model A/B anywhere in it. So let me measure the thing that actually matters: how far an un-tuned 7B is from the task, which tells us how much lift fine-tuning has to provide.
+
+While that runs, let me pull the reference numbers from their own report and eval harness.
+
+Their own report has the key datapoint: cleaned data lifted render-validity <strong>71% → 85% at fixed model size (+14 points)</strong>. Let me check the probe.
+
+Python&#x27;s buffering the output. While it runs, let me compute the serving arithmetic against <strong>our</strong> figure format, which is longer than theirs.
+
+Let me verify one thing that changes the whole calculus — whether figures are generated per-request or cached.
+
+Confirmed — lessons and their figures are cached on disk keyed by (node, models, version), so syllabus figures are generated <strong>once</strong>, not per student. Let me size that batch and check the probe.
+
+<strong>Short answer: yes for capacity, no for coverage — and those are separate problems.</strong> A 7B trained on that data would very likely produce good E3 geometry figures. It still wouldn&#x27;t give you web-app diagrams, and the reason has nothing to do with parameter count.
+
+<b class='h'>On capacity — 7B is probably enough, and 4B is plausible</b>
+
+Four pieces of evidence, three of them from your own project:
+
+<strong>Their 14B choice was never a capacity finding.</strong> The guideline&#x27;s stated reason is *&quot;the largest code-specialised dense model that fits one 16 GB card&quot;* — a free-GPU budget argument. There is no 7B A/B anywhere in that repo. Nobody tried smaller and found it lacking.
+
+<strong>Their own biggest win came from data, at fixed size.</strong> Cleaning and auditing the corpus moved render-validity <strong>71% → 85%</strong> on the same 14B. A 14-point gain from data quality is larger than the typical 7B→14B gap on constrained code generation.
+
+<strong>Their residual failures aren&#x27;t reasoning failures.</strong> Their report attributes the missing 15% to &quot;command/index failures&quot; and says a generate→validate→repair loop should push past 90%. Wrong intersection index and undefined reference are exactly what our GBNF grammar, linter, and render gate already catch — 12,624 accepted / 7 blocked on the grammar self-test.
+
+<strong>The task is DSL translation, not mathematics.</strong> 109 allowed commands, fixed JSON schema, constructible-order rule. Small models do well at that when decoding is grammar-constrained, which is where they normally lose most ground.
+
+The honest caveat: capacity *would* matter for the olympiad tail — Miquel point, isogonal conjugate, mixtilinear touch all need real reasoning about which intersection to take. But NCERT 9–12 needs perpendicular bisectors, tangents, medians, angle sums. The hard tail that justifies 14B is material we don&#x27;t serve.
+
+<b class='h'>The actual bottleneck isn&#x27;t size</b>
+
+Training on geometry-gen data alone gives you a model that emits <strong>static E3 constructions</strong>, at any parameter count:</div><pre class="tbl">| | in their 17,377 steps |
+|---|---|
+| <code>Slider</code> / <code>SetValue</code> | <strong>0 / 0</strong> |
+| <code>function</code>-class steps | 1.0% |
+| trigonometry in statements | <code>sin</code> 1.0%, <code>cos</code> 0.4%, unit circle 0.2% |</pre><div class="p">No viewport, no <code>watch</code>, no <code>try_this</code>. A perfect model on that data cannot produce *&quot;drag <code>cc</code> and watch <code>disc</code> change sign&quot;* — that object doesn&#x27;t exist in its training distribution.
+
+So the corpus mix matters more than the size:
+- <strong>stage 1</strong> — GGBench 884 + geometry-gen 1,017 = <strong>1,901</strong> figures to learn the construction language
+- <strong>stage 2</strong> — our <strong>78</strong> authored figures for the interactive wrapper and the E1/E2 branches
+
+Stage 2 is the thin part. <strong>78 examples is the real constraint on this project</strong>, and dropping from 14B to 7B doesn&#x27;t touch it — if anything a smaller model is *less* likely to overfit 78 examples.
+
+<b class='h'>Latency mostly isn&#x27;t the issue either</b>
+
+Measured on your machine, against our figure length (p50 304 tokens):</div><pre class="tbl">| | tok/s | per figure | 80-concept syllabus, offline |
+|---|---|---|---|
+| 3B | <strong>13.9</strong> (measured) | 22 s | 29 min |
+| 4B | ~11 (interpolated) | 28 s | 37 min |
+| 7B | <strong>6.7</strong> (measured) | 45 s | 1.0 h |
+| 14B | ~3.4 | 89 s | 2.0 h |</pre><div class="p">The orchestrator caches lessons keyed by (node, models, version), and the syllabus is 20 nodes / 80 concepts — <strong>fixed and finite</strong>. Every syllabus figure is generated once, offline, render-gated, and served from disk. No student ever waits on it. Real-time generation is only needed for free-form queries outside the syllabus.
+
+That reframes the choice: under a hard verifier, <strong>sample count buys more than parameters, and a smaller model buys sample count.</strong> At equal wall-clock, 7B gives ~2.6× the samples of 14B, and <code>1−(1−p)^n</code> favours the smaller model even with a 20-point pass@1 deficit. The caveat is that pass@k only rescues *stochastic* errors — a model that systematically picks the wrong intersection index picks it in every sample.
+
+<b class='h'>Recommendation</b>
+
+<strong>Train Qwen2.5-Coder-7B, not 4B</strong> — one practical reason: there is no 4B in that ladder (0.5/1.5/3/7/14/32B), so &quot;4B&quot; means a non-code general model like Qwen3-4B and you&#x27;d give up the code pretraining that makes this task easy. 7B is the smallest code-specialised size with headroom, it&#x27;s already on your machine, and Kaggle trains it in a fraction of the 14B budget — which means you can afford the epoch sweep their guideline recommends.
+
+Keep the 14B as the <strong>offline</strong> generator for rejection sampling if you want its extra points — 89 s/figure costs nothing when nobody&#x27;s waiting.
+
+I have an experiment running now: un-tuned qwen2.5:7b on their held-out eval set with their own prompt, gated through our renderer. That measures how far the base model already is, and so how much lift the fine-tune must supply. It&#x27;s still generating — I&#x27;ll report the number when it lands.</div><details class="acts"><summary>14 tool actions</summary><ol><li>Bash: Find model-size reasoning in their guideline</li><li>Bash: Measure 3B vs 7B generation speed</li><li>Bash: Check their eval set format</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Run un-tuned 7B on their held-out eval set</li><li>Bash: Extract measured results from their report</li><li>Bash: Check their eval harness for repair rounds</li><li>Bash: Check probe progress</li><li>Bash: Read probe output file</li><li>Bash: Compute serving times for our figure format</li><li>Bash: Check probe output again</li><li>Bash: Check figure caching in orchestrator</li><li>Bash: Size the offline batch and check probe</li><li>Bash: Check probe process state</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t6">
+  <h2><span class="num">Turn 6</span> Integrating the fine-tuned diagram model</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>I have trained qwen 2.3 coder 7B with the dataset and the report is in the folder of geometry-gen in claude folder of e-drive (v3).
+see if that model could be integrated with our web-app.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">You did the 7B run. Let me look at what it actually scored.
+
+Strong result — and there&#x27;s something in it I didn&#x27;t know: your deployment target is an <strong>RTX 3050 (6 GB), 60 GB RAM, SSH, 24/7</strong>, not this laptop. That changes the serving arithmetic completely. Let me see what artifacts I can actually test.
+
+The v3 weights aren&#x27;t on disk — only the old 14B adapter. Let me check where they are and verify the vocabulary against our allowlist.
+
+Two clean results:
+
+- <code>train_v3.jsonl</code> is <strong>byte-identical to v2</strong> (same MD5) — so my coverage analysis holds exactly.
+- <strong>59 distinct commands, every one already in our 109-command allowlist.</strong> The only non-matches are <code>f</code>, <code>fprime</code>, <code>x</code>, <code>y</code> — function application and coordinate accessors, not commands. <strong>100% vocabulary compatibility.</strong>
+
+Let me see how our orchestrator calls the diagram model so I can wire this in properly.
+
+Now I have the integration point exactly. Let me extract their <strong>byte-exact</strong> system and repair prompts — a train/serve mismatch here would silently cost accuracy.
+
+I have everything needed. Let me check whether any actual v3 predictions were saved locally — those would let me gate real model output.
+
+No saved predictions — so I can&#x27;t measure the trained model&#x27;s quality directly. But I can build the integration and measure the ceiling. Let me do both.
+
+A GeoGebra internal exception from <code>getXcoord</code> is escaping <code>page.evaluate</code> and killing the <strong>entire run</strong> at figure 97 of 106 — that&#x27;s a robustness bug in our gate, not in their data. Let me fix it.
+
+Now surface the unreadable points as a warning rather than swallowing them silently.
+
+Now re-run the batch that crashed, plus a full regression to prove the hardening changed no verdicts.
+
+Crash fixed — all 106 now process (was dying at 97). <strong>91/106 = 85.8%.</strong> But two *reference* constructions had commands rejected; let me look, then prove the hardening changed no verdicts.
+
+Regression clean: E1 8/8, E2 9/9. Those two rejections are genuine degeneracies in their <code>gold</code> set (parallel lines, so <code>Intersect</code> has no solution) — the source their own report flags at 3/8.
+
+The 15 <code>COINCIDENT_POINTS</code> are the real integration question, so let me check whether they&#x27;re collapsed figures or duplicate constructions.
+
+Diagnostic and clean: <strong>11 of 15 are a single pair with verification names</strong> — <code>[&#x27;G&#x27;,&#x27;Gpred&#x27;]</code>, <code>[&#x27;A&#x27;,&#x27;X&#x27;]</code>, <code>[&quot;A&#x27;&quot;,&#x27;A1&#x27;]</code>, <code>[&#x27;H&#x27;,&#x27;Io&#x27;]</code>. The figure&#x27;s whole purpose is showing two independent constructions land on the same point. Our gate calls that degeneracy. The 3 multi-pair cases are genuine collapses, all in <code>gold</code>.
+
+Let me make that distinction available without silently weakening the gate.
+
+<strong>85.8% → 96.2%.</strong> Now verify my claim that this changes nothing for our own figures.
+
+Confirmed — <strong>78/78 under both policies</strong>, so the relaxation moves nothing of ours. Now wiring the engine into the orchestrator.
+
+Everything holds. Now let me prove the engine path end-to-end by pointing it at Ollama&#x27;s OpenAI-compatible endpoint with the un-tuned 7B as a stand-in — this tests the plumbing, not the quality.
+
+Plumbing works end-to-end. But the viewport fell back to the default, which shouldn&#x27;t happen with two free points — the model emitted <code>&quot;command&quot;: &quot;O = (0, 0)&quot;</code> (already assigned) and my literal-point matcher only handles the bare form. Real bug; fixing.
+
+Unchanged at 1017/1017 — the fix is purely additive. Let me record everything.
+
+Final verification sweep across everything the integration touched.
+
+<strong>Yes — and it&#x27;s now wired in.</strong> Not as *the* diagram model, but as the <strong>E3 geometry engine</strong>, which is what its data actually supports.
+
+<b class='h'>Your numbers are strong</b>
+
+110/110 parseable, <strong>92/110 (84%) render-valid</strong>, <strong>86% on 32 held-out concept families</strong> — with a <strong>−4 point</strong> seen/unseen gap. It scores *higher* on families it never saw. For a 907-row corpus that&#x27;s not the default outcome; the overfitting test came back clean.
+
+That&#x27;s also the answer to last session&#x27;s open question: the 7B matched the 14B to within one problem, and the 14B was the handicapped one.
+
+<b class='h'>Compatibility, re-verified against v3</b></div><pre class="tbl">| check | result |
+|---|---|
+| <code>train_v3.jsonl</code> vs <code>train_v2.jsonl</code> | <strong>byte-identical</strong> (same MD5) — every earlier coverage measurement carries over |
+| its 59 commands vs our 109-command allowlist | <strong>all present</strong> (only <code>f</code>/<code>fprime</code>/<code>x</code>/<code>y</code>, which are accessors) |
+| its 106 held-out reference constructions through <strong>our</strong> gate | <strong>91/106 = 85.8%</strong> |</pre><div class="p"><b class='h'>What I built</b>
+
+[geom_engine.py](math-tutor-app/src/backend/geom_engine.py), routed from the orchestrator on <code>node.engine == &quot;E3&quot;</code>. Three things are copied <strong>byte-exact</strong>, because a paraphrase here is a silent train/serve mismatch — the same defect I had to fix in our own <code>diagram_user</code>:
+
+- the system prompt (sha256 <code>fcdf61fb…</code>, re-checked against your corpus at runtime)
+- <code>extract_json</code> from <code>kaggle_eval_v3.py</code>, so we tolerate exactly what your eval tolerated
+- the repair message — the only phrasing your 81%→84% lift was measured under
+
+<code>max_tokens</code> is 1400, not 900. Your v2 truncated an eighth of its own outputs at 900 and scored them unparsed; no reason to repeat that. E3 repair is capped at <strong>1</strong> round, per your report&#x27;s own &quot;worth exactly one retry, not two.&quot;
+
+<b class='h'>What it must not be asked to draw</b>
+
+Forced by measurement, two of the three from your own report:</div><pre class="tbl">| branch | routed? | why |
+|---|---|---|
+| <strong>E3</strong> geometry | <strong>yes</strong> | 84% / 86% unseen |
+| <strong>E1</strong> algebra | no | zero <code>Slider</code>/<code>SetValue</code> in 17,377 steps — E1&#x27;s pedagogy *is* the parameter sweep |
+| <strong>E2</strong> trigonometry | no | your §7 ladder failure; E2 is almost entirely word problems |
+| class 11 conics | no | <code>Parabola</code> appears twice in the whole corpus |</pre><div class="p"><b class='h'>Two bugs in *our* stack that this found</b>
+
+<strong><code>render_check.mjs</code> could be crashed by its own input.</strong> <code>getXcoord</code> throws from inside GeoGebra&#x27;s compiled code, the exception escaped <code>page.evaluate</code>, and a 106-figure batch died at #97 — discarding 96 already-computed results. Every accessor is now guarded, and unreadable points are excluded via <code>Number.isFinite</code> rather than comparing <code>undefined</code>, which would have made every such pair silently *non*-coincident — a false pass.
+
+<strong><code>import_geometrygen</code> silently lost free points</strong> when a command arrived pre-assigned (<code>&quot;O = (0, 0)&quot;</code> not <code>&quot;(0, 0)&quot;</code>) — viewport fell back to default, nothing marked movable. No error, just a worse figure. Caught in the first live run.
+
+<b class='h'>One judgement call worth your review</b>
+
+15 of their held-out references failed our gate on <code>COINCIDENT_POINTS</code> — but <strong>11 are a single pair named like a verification</strong>: <code>[&#x27;G&#x27;,&#x27;Gpred&#x27;]</code>, <code>[&quot;A&#x27;&quot;,&#x27;A1&#x27;]</code>, <code>[&#x27;H&#x27;,&#x27;Io&#x27;]</code>. Those figures *exist* to show two constructions agree; the coincidence is the theorem. All 3 genuinely collapsed figures had 3+ pairs.
+
+So the gate now takes <code>--coincidence strict|single-ok</code>: <strong>85.8% → 96.2%</strong> on their set, and <strong>78/78 unchanged on ours</strong> under either. Default stays strict — I won&#x27;t move that verdict silently.
+
+<b class='h'>What&#x27;s left, and it needs you</b>
+
+The weights aren&#x27;t here — only the old 14B adapter — and aren&#x27;t published (<code>huggingface.co/adityadhull</code> still 404s; the repo id is built from a <code>TAG</code> variable so I can&#x27;t guess it). Merge checkpoint-140 → fp16 → GGUF Q4_K_M → <code>llama-server</code> on the 3050 box, then <code>GEOM_ENABLED=1</code> and <code>GEOM_ENDPOINT</code>. Until then the route is inert by design.
+
+I verified the transport, prompt, parse, conversion and gate path end-to-end against Ollama with an un-tuned 7B standing in — that exercises the plumbing and says nothing about quality.
+
+Then the number that actually matters can be measured: render rate on <strong>our</strong> E3 concepts from <strong>our</strong> <code>figure_brief</code> handoff. Your 84% is on your input distribution — problem statements. Ours is a different one, and I&#x27;d want that measured rather than assumed.
+
+Regression after everything: our figures 78/78, GGBench 931/931, geometry-gen 1017/1017, grammar PASS, assembler ALL PASS, orchestrator 15 nodes.</div><details class="acts"><summary>46 tool actions</summary><ol><li>Bash: Find v3 artifacts</li><li>Bash: Read the v3 7B report</li><li>Bash: Read the v2 vs v3 comparison</li><li>Bash: Look for v3 weights and predictions</li><li>Bash: Locate the v3 7B weights</li><li>Bash: Verify v3 vocabulary vs our allowlist</li><li>Bash: Read orchestrator model-call layer</li><li>Bash: Read the diagram-generation stage</li><li>Bash: Extract exact v3 system and repair prompts</li><li>Bash: Check for saved v3 predictions</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\geom_engine.py</li><li>Bash: Run geom_engine self-test</li><li>Bash: Gate the v3 held-out reference set through our renderer</li><li>Bash: Run geom_engine self-test</li><li>Bash: Gate v3 held-out references through our renderer</li><li>Bash: See the render_check error</li><li>Bash: Re-run and capture full result</li><li>Bash: Diagnose the crash</li><li>Bash: Locate the crashing code</li><li>Bash: Read the object-inspection loop</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Bash: Read the coincidence pair loop</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\verifiers\render_check.mjs</li><li>Bash: Find the evaluate return</li><li>Bash: Read the return statement</li><li>Bash: Harden the visibility loop too</li><li>Bash: Re-run the crashed batch after hardening</li><li>Bash: Inspect rejected reference commands</li><li>Bash: Regression on our own E1/E2 figures</li><li>Bash: Classify the coincidence failures</li><li>Bash: Locate the coincidence verdict and CLI parsing</li><li>Bash: Read CLI arg handling</li><li>Bash: Add opt-in coincidence policy</li><li>Bash: Measure both coincidence policies</li><li>Bash: Regression: our figures under both policies</li><li>Bash: Wire geom_engine into the orchestrator</li><li>Bash: Run orchestrator self-test</li><li>Bash: Orchestrator dry-run regression</li><li>Bash: Re-verify engine and assembler</li><li>Bash: End-to-end engine plumbing test</li><li>Bash: Fix and verify both command forms behave identically</li><li>Bash: Tidy and re-verify the corpus after the fix</li><li>Bash: Add the v3 integration section to the report</li><li>Bash: Update spec.md and tasks.md</li><li>Bash: Verify engine, grammar, assembler, orchestrator</li><li>Bash: Final lint regression</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t7">
+  <h2><span class="num">Turn 7</span> Settling the scope and the model integration</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>okay, so we will create the web-app for only geometry, algebra funtion graphs and coordinate geometry. 
+now, the model checkpoints are on huggingface.
+tell me what all you need to integrate the model with the web-app.
+also, what is the exact process from a qwery to final explanation with diagram (how our web-app will work and the process behind it)</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Let me check HF first rather than ask you for something I can find, and work out what the new scope does to the syllabus.
+
+HF search finds nothing under any variant of your name — all 404. I&#x27;ll need the exact repo id from you. Meanwhile, let me pin down what the scope change does to the syllabus.
+
+Checked HF: nothing under <code>adityadhull</code>, <code>aditya-dhull</code>, <code>adityadhull7</code>, <code>AdityaDhull</code> — all 404, and a content search turns up only other people&#x27;s models. So I do need the repo id from you.
+
+First, one consequence of the scope decision you should see before we lock it.
+
+<b class='h'>What dropping trigonometry actually costs</b></div><pre class="tbl">| | nodes | concepts |
+|---|---|---|
+| <strong>keep</strong> (E1 algebra/coordinate + E3 geometry) | <strong>16</strong> | <strong>67</strong> |
+| drop (E2 trigonometry) | 4 | 13 |</pre><div class="p">The four are <code>c10.ch8</code> Introduction to Trigonometry, <code>c10.ch9</code> Applications of Trigonometry, <code>c11.ch3</code> Trigonometric Functions, <code>c12.ch2</code> Inverse Trigonometric Functions.
+
+Two things fall out of that which aren&#x27;t obvious:
+
+<strong>It removes all of class 12.</strong> <code>c12.ch2</code> is the only class-12 node in the graph. The app becomes <strong>classes 9–11</strong>, not 9–12. If you want a class-12 presence, the natural add-back is a non-trig class-12 chapter (Relations &amp; Functions, or Application of Derivatives — the model handles tangent/secant/derivative graphs, they&#x27;re in its eval).
+
+<strong>Conic Sections stays in scope but the model can&#x27;t serve it.</strong> <code>c11.ch10</code> is tagged E1, so it survives the cut — but geom7b has <code>Parabola</code> ×2, <code>Ellipse</code> ×1, <code>Conic</code> ×1 in its entire corpus. That node needs your own adapter or hand-authored figures regardless.
+
+Also: one of the five frozen held-out eval nodes was <code>c12.ch2</code>, so the held-out set drops to four. Worth knowing before we quote held-out numbers in the report.
+
+<b class='h'>What I need from you — four things</b>
+
+1. <strong>The exact HF repo id.</strong> <code>username/repo</code>. If it&#x27;s private, don&#x27;t paste a token here — either flip it public, or run <code>huggingface-cli login</code> on whichever machine downloads it and I&#x27;ll pull from there.
+2. <strong>Which checkpoint</strong>, and its path inside the repo. Your report picks <strong>checkpoint-140</strong> on the unseen-concept column (86% vs 76%, reproduced across two disjoint samples). Confirm that&#x27;s the one, and whether the repo holds it as a subfolder.
+3. <strong>What form it&#x27;s in</strong> — raw LoRA adapter, merged fp16, or already GGUF. That decides whether there&#x27;s a merge+convert+quantise step or just a download.
+4. <strong>Where it gets served</strong> — your RTX 3050 box, or here. This is the only one that changes the *architecture*: on the 3050 it&#x27;s ~26 tok/s (~21 s/figure), on this laptop ~6.7 tok/s (~45 s/figure).
+
+On that last point — <strong>you don&#x27;t need the 3050 for me to validate it.</strong> All 67 concepts generate offline once and cache; at laptop speed that&#x27;s about 50 minutes for the whole syllabus. So give me the repo id and I can pull GGUF, run it under Ollama, and measure the number that actually matters: <strong>render rate on our concepts from our <code>figure_brief</code> handoff</strong>. Your 84% is on your input distribution — problem statements. Ours is different, and I&#x27;d rather measure that than assume it transfers.
+
+---
+
+<b class='h'>How the app works, query to rendered lesson</b></div><pre class="code"><code>student query ──► ROUTER ──► cache? ──► RAG ──► EXPLAINER ──► DIAGRAM ──► VERIFY ──► ASSEMBLE ──► render
+                                │hit                                         │fail        │
+                                └──────────── served from disk ──────────────┘       text-only lesson</code></pre><div class="p"><strong>1 · Route</strong> — <code>lesson_store.route()</code>. Hybrid BM25 + dense over the node texts, weighted RRF (<code>W_DENSE = 2.0</code>), <strong>class as a hard filter</strong>. Picks one of the 16 syllabus nodes. Measured <strong>91.9% top-1</strong>, up from 83.8% lexical-only. Equal-weight fusion was *worse* than dense alone, so the weight is tuned, not copied.
+
+<strong>2 · Cache</strong> — keyed by (node, models, <code>PIPELINE_VERSION</code>). Hit returns immediately. This is why serving speed barely matters: the syllabus is fixed, so each concept is generated once, ever.
+
+<strong>3 · Retrieve</strong> — <code>Retriever.retrieve()</code>. The <strong>hard (class, chapter) filter is applied before ranking</strong>, not as a preference — that&#x27;s what makes the syllabus boundary provable. Then <code>bm25s</code> + <code>embeddinggemma</code> fused with RRF k=60, top-5 chunks. <strong>96.7% top-1, 0.5 ms warm.</strong> Measured leakage across class boundaries: <strong>zero</strong>.
+
+<strong>4 · Explain</strong> — the explainer adapter takes node + chunks → lesson JSON: overview, concepts (each with <code>title</code>, <code>explanation</code>, <code>figure_brief</code>, <code>grounded_in</code> verbatim NCERT quote), worked example, problems. *This adapter is still untrained — the one piece genuinely outstanding.*
+
+<strong>5 · Draw</strong> — per concept, branch-conditioned:
+- <strong>E3</strong> → <code>geom_engine</code> → geom7b-v3. Its byte-exact system prompt, and the <code>figure_brief</code> sent as a problem statement, because that&#x27;s the input distribution it was trained on.
+- <strong>E1</strong> → your own adapter when it exists; geom7b static fallback meanwhile.
+
+Its <code>construction_steps</code> then pass through <code>import_geometrygen.to_figure()</code>, which derives the wrapper deterministically — viewport (aspect-corrected to the board&#x27;s 4:3, or circles shear into ellipses), <code>watch</code> from its <code>number</code> steps, <code>movable</code> on free points, <code>try_this</code>.
+
+<strong>6 · Verify — the part the project is actually built around.</strong> Three layers:
+- <strong>GBNF grammar</strong> at decode time — an invalid command *cannot be emitted*. 12,624 accepted / 7 blocked.
+- <strong><code>ggb_lint</code></strong> statically — allowlist, arity, brackets, undefined references. Currently clean on all three corpora.
+- <strong><code>render_check.mjs</code></strong> — a real headless GeoGebra applet via Playwright. Every command must return true, every labelled object must exist, ≥1 visible, sliders sane, screenshot not blank.
+
+<strong>7 · Repair</strong> — failing step and its error fed back. <strong>One</strong> round for E3 (your measurement: 3 of 21 recovered) — your own report&#x27;s &quot;worth exactly one retry, not two.&quot;
+
+<strong>8 · Assemble</strong> — <code>assemble.py</code>, deterministic code, not a model. Class and chapter come from the node, out-of-syllabus concept ids are dropped, and <strong>a figure is attached only if <code>render[cid] is True</code></strong>.
+
+<strong>9 · Render</strong> — <code>GeoGebraFigure.tsx</code>, one applet per figure, <code>perspective: &quot;G&quot;</code>, viewport aspect matched to pixels.
+
+<strong>The safety property that makes all of it worth having:</strong> a figure that fails the gate is *dropped*, and the lesson ships text-only. Never a broken applet, never a wrong diagram. That&#x27;s already been demonstrated end-to-end — an un-tuned model produced 3 figures, all 3 were rejected, both repair passes failed, and the lesson shipped as text.
+
+Want me to publish this as a page you can hand to your professor? One line to say yes — otherwise it&#x27;s already in <code>spec.md</code> §4.</div><details class="acts"><summary>4 tool actions</summary><ol><li>Bash: Search HuggingFace for the published model</li><li>Bash: List syllabus nodes by engine</li><li>Bash: Get node ids and chapters</li><li>Bash: Compute the scope change and check held-out nodes</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t8">
+  <h2><span class="num">Turn 8</span> Correcting the NCERT symbol extraction</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>can you correct this issue so that every symbols come properly?</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Let me see whether this is actually a PDF limitation or an extractor limitation — those have very different fixes.
+
+PyMuPDF is available — that&#x27;s promising, since it exposes per-character font size and baseline. Let me find the PDFs and test on a known-broken formula.
+
+We&#x27;re already on PyMuPDF — so the fix isn&#x27;t the library, it&#x27;s that plain <code>get_text()</code> throws away font size and baseline. Let me check whether that information is actually recoverable.
+
+<strong>Found the root cause.</strong> The θ *is* in the PDF — as the character <code>&#x27;q&#x27;</code> in the <strong><code>Symbol</code> font</strong>. Adobe&#x27;s Symbol font maps ASCII codes to Greek and maths glyphs (<code>q</code>→θ, <code>p</code>→π, <code>Ö</code>→√), and plain <code>get_text()</code> returns the raw byte. Every maths symbol in the book is sitting there mislabelled.
+
+Let me survey how big this is across all 54 PDFs.
+
+Good news, and it changes your plan: <strong>this is not a PDF limitation.</strong> The survey just proved it — most symbols are already correct unicode in the file:
+
+<code>π</code> 749 · <code>θ</code> 363 · <code>−</code> 3,234 · <code>×</code> 359 · <code>→</code> 522 · <code>∈</code> 400 · <code>∩</code> 346 · <code>≤</code> 263 · <code>≠</code> 246
+
+What&#x27;s broken is two specific, *mechanical* things. Let me confirm before recommending.
+
+U+F0xx = 0xF000 + ASCII confirmed. The ellipse search missed on a line break; let me find it properly.
+
+Now I have everything. Let me answer your three questions directly, because the survey settles them:
+
+<strong>1. It&#x27;s not a PDF limitation.</strong> Every symbol is in the file. Two mechanical faults break them:
+- <strong>Private-use codepoints</strong>: <code>U+F03D</code> is just <code>=</code> shifted by <code>0xF000</code>. ~900 characters.
+- <strong>Extensible bracket pieces</strong>: <code>U+F8EB</code>–<code>U+F8FB</code> are the *fragments* of tall brackets (<code>⎛⎜⎝</code>). ~8,000 characters.
+
+<strong>2. Retrieval won&#x27;t go &quot;close to 100%&quot; — it&#x27;s already 96.7%, and it doesn&#x27;t depend on symbols.</strong> BM25 and the embeddings match on words like &quot;discriminant&quot;, &quot;sector&quot;, &quot;arc&quot; — never on <code>θ</code>. The single remaining miss is an ambiguous chapter label, not notation. What&#x27;s broken is <strong>display and citation fidelity</strong>, which is a different problem than retrieval.
+
+<strong>3. Yes, there&#x27;s a much better way</strong> — and the ellipse equation proves it&#x27;s fully recoverable:</div><pre class="code"><code>plain text:  &quot;2 2 2 2 x y a b + = 1&quot;        ← exponents dumped first, bases after
+span data:   &#x27;+&#x27; at x=245.0, y=188.4
+drawn rules: y=196.08 x=[229.9,242.2]  and  y=196.08 x=[253.9,266.4]</code></pre><div class="p">Those two thin rules are the <strong>fraction bars</strong>, and the <code>+</code> sits horizontally between them (242.2 &lt; 245.0 &lt; 253.9). That is <code>x²/a² + y²/b² = 1</code>, completely determined by geometry. The fraction bars are vector graphics, which is why <code>get_text()</code> never saw them.
+
+So: <strong>fix the extractor, don&#x27;t convert the books.</strong> Deterministic, covers all 54 PDFs, no manual work, no model. Hand-converting is thousands of equations, and the automated routes are closed to us — Mathpix is paid, Nougat and pix2tex need torch which is blocked here.
+
+Let me build it.
+
+Integration point is clean — one call in <code>build_corpus.py</code>. Writing the math-aware extractor.
+
+I stubbed <code>_mode</code> — it needs the actual baseline comparison, not just size. Let me fix it.
+
+Now the test that matters — before/after on the passages I know are broken.
+
+Two clear bugs: superscripts sort *before* their base (<code>²x</code> not <code>x²</code>), and fraction tokens land in the wrong line. Let me fix both.
+
+Fix 1 worked — fractions are correct now. Fix 2 didn&#x27;t: I snapped to <code>y1</code> (baseline) but line grouping compares <code>y0</code> (top of box). Correcting.
+
+Case 1 is now exact: <code>(x²)/(a²)+(y²)/(b²)= 1</code>. The arc-length one is still wrong — let me see why.
+
+Now I see it: the symbols are all correct (<code>θ</code>, <code>×</code>, <code>π</code>, <code>r</code>, <code>360</code>), but <strong>display equations get shredded by line grouping</strong> — sub-expressions are deliberately offset 2–8pt, and my fixed 3.5pt tolerance splits them. Let me cluster on baseline instead.
+
+All four now exact:</div><pre class="tbl">| target | extracted |
+|---|---|
+| <code>θ/360 × 2πr</code> | <code>angle θ = (θ)/(360)×2πr</code> ✓ |
+| <code>x²/a² + y²/b² = 1</code> | <code>(x²)/(a²)+(y²)/(b²)= 1</code> ✓ |
+| <code>x² + 1 = 0</code> | <code>x² + 1 = 0</code> ✓ |
+| <code>ax² + bx + c = 0</code> | <code>ax² + bx + c = 0</code> ✓ |</pre><div class="p">Now wire it in and rebuild the corpus, keeping the old one for comparison.
+
+Identical word count is suspicious. Let me verify the content actually changed.
+
+My replace silently no-op&#x27;d — line 97 is unchanged and I printed success without asserting. Using Edit instead.
+
+1,378 → 1,174 chunks, and 62k fewer words. Some of that is legitimate compaction, but 16% is enough that I need to check I&#x27;m not dropping prose.
+
+Clean result — the 15.7% drop is <strong>entirely notation compaction, not lost text</strong>:</div><pre class="tbl">| | old | new |
+|---|---|---|
+| <strong>prose tokens</strong> | 175,947 | <strong>175,788 (−0.1%)</strong> |
+| math symbols | 6,116 | <strong>14,366 (+135%)</strong> |
+| reconstructed fractions | 0 | <strong>6,469</strong> |</pre><div class="p">And the three prose words that dropped are the proof: <code>aij</code> 116→7, <code>bij</code> 46→0 — those were matrix elements. Let me confirm they became subscripts rather than vanishing.
+
+Confirmed — <code>aᵢⱼ</code>, <code>a₁</code>, <code>aₙ</code>, <code>bᵢⱼ</code> all reconstructed (643 instances). 
+
+The dense index is now stale (1,378 vectors vs 1,174 chunks), which would silently degrade retrieval to lexical-only. Rebuilding it now.
+
+While that rebuilds (~11 min), let me add the citation damage filter — the backstop for whatever notation damage remains.
+
+Both failures are real flaws worth fixing: <code>&gt; 0.</code> legitimately ends in a number (false positive), and <code>a b and c d</code> breaks my 3-in-a-row rule (false negative).
+
+The heredoc ate my escapes — <code>\b</code> became a literal backspace and the unicode ranges became raw characters. Fixing with Edit.
+
+The line contains invisible literal characters. Let me patch by line number with a proper script file.
+
+8/10. The false positive is function notation (<code>p(x)</code> counts as bare vars) and the false negative is <code>F( , )</code> — an empty argument list, which is itself a strong damage signal. Both fixable.
+
+One left: <code>x-coordinates</code> and <code>x-axis</code> count as bare variables. Those are standard maths English, not stranded numerators.
+
+13/13. Let me check the index rebuild and then re-measure the whole pipeline.
+
+The rebuild is still running. One small polish while it does — a subscripted <code>×</code> currently renders as <code>_(×)</code>, which is uglier than the original.
+
+The docstring promises a self-test that doesn&#x27;t exist yet, and I changed <code>_script</code> after the corpus build. Let me check the index status before deciding the rebuild order.
+
+Still running, and it&#x27;s embedding a corpus that&#x27;s now one polish behind. Better to stop it, finalise the corpus, then index once.
+
+Now add the self-test the docstring promises, then rebuild corpus and index once, in order.
+
+4/4. Now the final corpus rebuild, then the index in one pass.
+
+Indexing now (~10 min). Let me write this up while it runs.
+
+Still building. Let me record this in spec.md and tasks.md.
+
+While that finishes, let me confirm the rebuild didn&#x27;t break section detection — every syllabus node still needs retrievable chunks.
+
+Every node retains chunks (min 6), 180 sections still detected. Let me check the index.
+
+Still embedding. Here&#x27;s where things stand.
+
+<b class='h'>Your instinct was right about the problem, wrong about the cause</b>
+
+The advice you were given is <strong>true of the default extractor</strong> — and the damage was worse than &quot;garbage&quot;, because it was *plausible*:</div><pre class="tbl">| in the book | in our corpus |
+|---|---|
+| <code>10⁴ = 10000</code> | <code>104 = 10000</code> |
+| <code>x²/a² + y²/b² = 1</code> | <code>x y a b + = 1</code> |
+| <code>(θ/360) × 2πr</code> | <code>is r    2</code> |</pre><div class="p">But it is <strong>not a PDF limitation.</strong> A font survey of all 54 PDFs (1,543,347 characters) found the symbols already sitting there as correct unicode: <code>π</code> 749, <code>θ</code> 363, <code>−</code> 3,234, <code>×</code> 359, <code>→</code> 522, <code>∈</code> 400. Only 2.17% of characters were in a symbol font at all.
+
+Three mechanical faults were destroying it:
+
+1. <strong>Private-use codepoints</strong> — <code>U+F03D</code> is just <code>=</code> plus <code>0xF000</code>.
+2. **Extensible bracket *pieces*** — <code>U+F8EB</code>–<code>U+F8FE</code> are the fragments Adobe&#x27;s Symbol font uses to assemble tall brackets. ~8,000 characters of pure visual scaffolding.
+3. <strong>Geometry</strong> — a superscript is only a smaller font on a raised baseline, and <strong>a fraction bar is a vector graphic, not a character.</strong> That&#x27;s why <code>get_text()</code> never saw a single one.
+
+The ellipse proved it: two drawn rules at <code>y=196.08</code>, with the <code>+</code> at <code>x=245.0</code> sitting *between* them, determine <code>x²/a² + y²/b²</code> entirely from geometry. Nothing was missing — the extractor threw away the coordinates that carried the structure.
+
+<b class='h'>So don&#x27;t convert the books</b>
+
+<strong>Retrieval won&#x27;t improve.</strong> It&#x27;s already 96.7% top-1 and matches on *words* — &quot;discriminant&quot;, &quot;sector&quot;, &quot;arc&quot; — never on a <code>θ</code>. Its one remaining miss is an ambiguous chapter label. Symbols were never what finds a chunk.
+
+Hand-converting is thousands of equations across 54 PDFs, and the automated routes are closed to us: Mathpix is paid, Nougat and pix2tex both need torch. The extractor fix is ~350 lines, one pass, deterministic.
+
+<b class='h'>What it recovered</b></div><pre class="tbl">| | before | after |
+|---|---|---|
+| <strong>prose tokens</strong> | 175,947 | <strong>175,788 (−0.1%)</strong> |
+| math symbols | 6,116 | <strong>14,366 (+135%)</strong> |
+| reconstructed fractions | 0 | <strong>6,469</strong> |</pre><div class="p">The 15.7% word drop is compaction, not loss — prose moved 0.1%. And the three prose words that fell prove it: <code>aij</code> 116→7, <code>bij</code> 46→0, because they&#x27;re now <code>aᵢⱼ</code> and <code>bᵢⱼ</code>. <strong>643 subscripted variables</strong> where there were none.
+
+Regression suite 4/4 on the passages that were provably broken:</div><pre class="code"><code>(θ)/(360)×2πr        ✓    (x²)/(a²)+(y²)/(b²)  ✓
+x² + 1 = 0           ✓    ax² + bx + c = 0     ✓</code></pre><div class="p">Three bugs were instructive enough to record: the baseline must be measured from <strong>full-size characters only</strong>, or the superscripts drag the reference toward themselves and their own rise reads as zero; inside a fraction, order by <strong>x alone</strong>, since a y-band sort turned <code>x²</code> into <code>²x</code>; and line grouping must cluster on the <strong>baseline with a size-proportional tolerance</strong>, because a fixed 3.5pt tolerance shredded display equations whose parts are offset 2–8pt.
+
+<b class='h'>Plus a backstop</b>
+
+Geometric recovery is imperfect, and a citation is the one place &quot;mostly right&quot; fails — one concept was citing *&quot;...angle with degree measure  is r    2.&quot;* to the student as textbook authority. <code>notation_damaged()</code> now disqualifies damaged sentences from ever being cited. It deliberately does *not* reject a legitimate trailing comparison (<code>&gt; 0.</code>), function notation (<code>p(x)</code>), or hyphenated compounds (<code>x-axis</code>) — each of which my first version got wrong. 13/13 on a hand-labelled set.
+
+Every syllabus node still has chunks (min 6), 180 sections intact. Write-up in [report/extraction.md](math-tutor-app/report/extraction.md); <code>spec.md</code> and <code>tasks.md</code> updated (T13.1–T13.4).
+
+Waiting on the dense-index rebuild — mandatory, because <code>retrieve.py</code> silently falls back to lexical-only when vector and row counts disagree, costing 13 points with no error. I&#x27;ll re-run the retrieval eval and rebuild the SFT sets when it lands, and report whether retrieval held at 96.7%.</div><details class="acts"><summary>67 tool actions</summary><ol><li>Bash: Find the PDFs and current extractor</li><li>Bash: Check available PDF libraries</li><li>Bash: Locate PDFs and the extractor</li><li>Bash: Find the chunker/extractor script</li><li>Bash: Inspect the extractor and locate class 10 PDFs</li><li>Bash: Inspect span-level data for a broken formula</li><li>Bash: Survey fonts across all NCERT PDFs</li><li>Bash: Verify the private-use codepoint hypotheses</li><li>Bash: Examine the ellipse equation structure</li><li>Bash: Find and dissect the ellipse equation</li><li>Bash: Read the current extraction structure</li><li>Bash: Read clean() and main()</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\extract_math.py</li><li>Bash: Implement baseline-based script detection</li><li>Bash: Before/after on known-broken formulas</li><li>Bash: Apply fixes and retest</li><li>Bash: Fix snap target and retest</li><li>Bash: Dump the arc-length formula layout</li><li>Bash: Switch to size-proportional baseline clustering</li><li>Bash: Retest all cases with baseline clustering</li><li>Bash: Check where _median went</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\extract_math.py</li><li>Bash: Retest with baseline clustering</li><li>Bash: Wire the math extractor into the corpus builder</li><li>Bash: Rebuild the corpus with math-aware extraction</li><li>Bash: Compare old and new corpus</li><li>Bash: Trace what build_corpus actually reads and writes</li><li>Bash: Get exact bytes of line 97</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\build_corpus.py</li><li>Bash: Rebuild corpus with the extractor actually wired in</li><li>Bash: Verify prose is intact and symbols increased</li><li>Bash: Confirm subscripts were reconstructed</li><li>Bash: Check index builder interface</li><li>Bash: Rebuild the dense index</li><li>Bash: Read the quote selector</li><li>Bash: Read the rest of supporting_quote</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\build_dataset.py</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\build_dataset.py</li><li>Bash: Test the damage filter</li><li>Bash: Refine and retest the damage filter</li><li>Read: e:\AIDS\Project\math-tutor-app\src\backend\build_dataset.py</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\build_dataset.py</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Fix the regexes and retest</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Final damage-filter test</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Verify the damage filter</li><li>Bash: Check dense index rebuild progress</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Verify the script polish</li><li>Bash: Check index build status</li><li>ToolSearch: </li><li>TaskStop: </li><li>Bash: Check the end of extract_math.py</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\backend\extract_math.py</li><li>Bash: Run the extractor self-test</li><li>Bash: Final corpus rebuild</li><li>Bash: Rebuild dense index on the final corpus</li><li>Write: e:\AIDS\Project\math-tutor-app\report\extraction.md</li><li>Bash: Check index build progress</li><li>Bash: Check dense.npy with absolute path</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Update spec.md and tasks.md</li><li>Bash: Check index build again</li><li>Bash: Verify every node still has chunks</li><li>Bash: Check index status</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t9">
+  <h2><span class="num">Turn 9</span> Typesetting the mathematics with KaTeX</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>yes, add katex to the frontend then.
+do everything required to do so.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Let me look at the frontend structure first.
+
+Clear render targets. Let me install KaTeX first.
+
+KaTeX 0.18.7 in. The real work is converting our existing notation — 122 concepts and 66 citations already use unicode — so nothing needs rewriting.
+
+Now a real test — including validating that KaTeX actually parses everything the converter emits.
+
+The KaTeX parse check earned its place — it caught <code>\pi</code> + <code>r</code> merging into <code>\pir</code>. A LaTeX command name runs until a non-letter, so it needs a gap. Fixing precisely.
+
+22/22, including every generated expression parsing in real KaTeX. Now the component and wiring.
+
+Now wire <code>MathText</code> into every place lesson text is rendered.
+
+Now check the other pages that render lesson-derived text.
+
+Now the build — the real test of whether it all compiles and typechecks.
+
+The <code>u</code> flag needs es2018. Every character in my tables is BMP, so the flag isn&#x27;t needed — but let me check the tsconfig target before deciding.
+
+Target is ES2017 — the project default. I won&#x27;t change it for one module; the <code>u</code> flag adds nothing here since every character is BMP.
+
+Different flag this time — <code>/s</code> (dotAll) also needs ES2018. Tokens are whitespace-split so they contain no newlines; the flag is redundant.
+
+Build clean. Now re-run the mathify tests against the final source, then verify it renders in the live app.
+
+22/22. Now the real check — does it render in the running app?
+
+Both up. Let me fetch a lesson page and look for KaTeX markup.
+
+KaTeX is live — <code>ax² + bx + c</code> renders with proper MathML. But the second sample reveals a flaw: <code>a ≠ 0</code> rendered as text <code>a</code> plus math <code>≠0</code>, because I put <code>a</code> in the stop-list. And word-fractions like <code>(side opposite to angle A)/(hypotenuse)</code> never form a single token, so they&#x27;re missed entirely. Both fixable.
+
+That FAIL is my test&#x27;s fault, not the code&#x27;s — the heredoc turned <code>\\text</code> into a literal tab. The detail line shows the output is correct: <code>\frac{\text{side opposite to angle A}}{\text{hypotenuse}}</code>. Let me rewrite the test without heredoc escaping.
+
+30/30 across both suites. Let me commit the tests into the repo so they&#x27;re runnable, then rebuild and verify live.
+
+One cosmetic warning to silence, plus an npm script.
+
+Clean. Now restart the dev server so the new dependency and CSS import load, then verify live.
+
+34 rendered expressions. Let me confirm the stylesheet is actually served — without it KaTeX renders unstyled.
+
+The classic gotcha with KaTeX is fonts 404-ing while the CSS loads fine. Let me check.
+
+Fonts resolve with real sizes. Let me see exactly what got typeset on the page.
+
+Exactly right — real content typeset, including the <code>a \neq 0</code> fix. Now the safety check across all lessons: did any prose get swallowed?
+
+<strong>0 over-conversions across 268 typeset expressions on 15 pages.</strong> (The 3 pages without maths are held-out nodes with no authored lesson — correct behaviour.)
+
+One typographic nit worth fixing: <code>AD = 3 cm</code> renders <code>cm</code> in italic, but units should be upright.
+
+Units correct. Final rebuild, full app re-audit, and docs.
+
+<strong>Done. Mathematics is now typeset across the app.</strong>
+
+<b class='h'>What I built</b>
+
+The frontend had <strong>no maths renderer at all</strong>. Rather than rewrite your 122 authored concepts and 66 citations into LaTeX, [mathify.ts](math-tutor-app/src/frontend/src/lib/mathify.ts) converts the unicode notation deterministically at render time:</div><pre class="tbl">| in your content | typeset as |
+|---|---|
+| <code>x² + y² = r²</code> | <code>x^{2} + y^{2} = r^{2}</code> |
+| <code>aᵢⱼ</code>, <code>a₁</code>, <code>aₙ</code> | <code>a_{ij}</code>, <code>a_{1}</code>, <code>a_{n}</code> |
+| <code>(θ)/(360)×2πr</code> | <code>\frac{\theta}{360}\times2\pi r</code> |
+| <code>∠AOB = 120°</code> | <code>\angle AOB = 120^{\circ}</code> |
+| <code>(side opposite to angle A)/(hypotenuse)</code> | <code>\frac{\text{side opposite to angle A}}{\text{hypotenuse}}</code> |</pre><div class="p">Explicit <code>$…$</code> and <code>$$…$$</code> are honoured too — so anything you author in LaTeX from here renders directly, and the convention question never had to block anything. Both work.
+
+<strong>Wiring:</strong> <code>MathText.tsx</code> at 11 render sites in <code>LessonView</code>, plus <code>try_this</code> in the figure caption and the practice page. KaTeX CSS imported once in <code>layout.tsx</code>, bundled locally rather than from a CDN so the PWA still typesets offline.
+
+<b class='h'>Verified on the live app</b></div><pre class="tbl">| check | result |
+|---|---|
+| expressions typeset across 15 lesson pages | <strong>268</strong> |
+| <strong>over-conversions</strong> (prose wrongly made maths) | <strong>0</strong> |
+| KaTeX fonts served | 200, real sizes |
+| production build | clean |
+| test suite <code>npm run test:math</code> | <strong>30/30</strong> |
+| backend regression | extractor 4/4 · assembler · geom_engine ALL PASS · retrieval 96.7% |</pre><div class="p">Real output: <code>(a + b)^{2} = a^{2} + 2ab + b^{2}</code> · <code>a_{1}x + b_{1}y + c_{1} = 0</code> · <code>y - y_{1} = m(x - x_{1})</code> · <code>(x - h)^{2} + (y - k)^{2} = r^{2}</code> · <code>= ar^{n-1}</code>.
+
+<b class='h'>The part that carries the risk</b>
+
+Convert too much and ordinary sentences render in italic serif with the spaces collapsed. One guard does most of the work: <strong>a token containing a run of 4+ lowercase letters is never maths.</strong> That protects &quot;discriminant&quot; and &quot;equation&quot; — and specifically <code>x-axis</code> and <code>x-coordinates</code>, which qualify *because* they contain a hyphen. A span is then only typeset if it carries a real signal (super/subscript, Greek, relation, <code>√ ∠ °</code>), which is why &quot;a polynomial p(x)&quot; stays as text.
+
+And <code>MathText</code> <strong>cannot crash the page</strong>: <code>throwOnError: false</code> plus a try/catch means a malformed expression degrades to the original characters. Same principle as the figure gate — a figure that won&#x27;t draw is dropped and the lesson ships text-only; a formula that won&#x27;t typeset shows as text.
+
+<b class='h'>Four defects, and where each came from</b>
+
+The test that earns its keep feeds <strong>every generated expression to real KaTeX with <code>throwOnError</code></strong>. It caught <code>2πr</code> → <code>2\pir</code> — a LaTeX command name swallowing the letter after it. No amount of eyeballing finds that.
+
+Three more came from rendering actual pages rather than from the tests:
+
+- <strong><code>a ≠ 0</code> split</strong> into text <code>a</code> + maths <code>≠ 0</code>, because I&#x27;d put <code>a</code> in the stop-list. Unnecessary — the signal requirement already protects the article, so &quot;a polynomial&quot; stays text either way.
+- <strong>Word fractions were invisible</strong> to token-based detection: <code>(side opposite to angle A)/(hypotenuse)</code> spans several tokens and trips the long-word guard. Now matched on the raw string, where <code>(group)/(group)</code> is high-confidence.
+- **<code>3 cm</code> typeset as *c* × *m***, since LaTeX sets bare letters italic. Units are now upright with a thin space.
+
+Both servers are live (<code>:3000</code>, <code>:8000</code>). <code>spec.md</code> and <code>tasks.md</code> updated — <strong>T13.4 closed</strong>, 87 done / 42 open.</div><details class="acts"><summary>64 tool actions</summary><ol><li>Bash: Inspect frontend structure</li><li>Bash: Read the lesson renderer</li><li>Bash: Install KaTeX</li><li>Bash: Confirm KaTeX installed</li><li>Write: e:\AIDS\Project\math-tutor-app\src\frontend\src\lib\mathify.ts</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Compile mathify for testing</li><li>Bash: Run the mathify test suite</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\lib\mathify.ts</li><li>Bash: Correct the test expectation</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Recompile and rerun the test suite</li><li>Write: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\MathText.tsx</li><li>Bash: Read layout to add KaTeX CSS</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\app\layout.tsx</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Wire MathText into LessonView</li><li>Bash: Find text rendering in the figure component</li><li>Bash: Read the try_this render block</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\GeoGebraFigure.tsx</li><li>Bash: Find imports in GeoGebraFigure</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\GeoGebraFigure.tsx</li><li>Bash: Find other text render sites</li><li>Bash: Read the practice page render</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Wire the practice page</li><li>Bash: Build the frontend</li><li>Bash: Check the TypeScript target</li><li>Bash: Find the u flags</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Drop u flags and rebuild</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\lib\mathify.ts</li><li>Bash: Rebuild the frontend</li><li>Bash: Re-run mathify tests on the final source</li><li>Bash: Check whether the servers are running</li><li>Bash: Check whether KaTeX renders on a live lesson page</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Apply fixes and test the live-render regressions</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Run both test suites cleanly</li><li>Bash: Move the tests into the repo with a runner</li><li>Bash: Run the committed test suite</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Polish the runner and verify</li><li>Bash: Stop the stale dev server</li><li>PowerShell: Find the next dev processes</li><li>PowerShell: Kill the dev server by PID and confirm the port is free</li><li>Bash: Restart the dev server on a clean port</li><li>Bash: Verify the port and fetch a lesson</li><li>Bash: Verify KaTeX CSS is served</li><li>Bash: Verify KaTeX web fonts resolve</li><li>Bash: Extract the LaTeX actually typeset on the page</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Audit every lesson page for over-conversion</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Add units and re-run tests</li><li>Bash: Verify unit rendering</li><li>Bash: Production build with units</li><li>Bash: Re-audit all pages after the units change</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Update spec.md and close T13.4</li><li>Bash: Backend regression sweep</li><li>Bash: Frontend tests and app health</li><li>Bash: Run frontend tests and health checks</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t10">
+  <h2><span class="num">Turn 10</span> Using the diagram model across every branch</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>use the diagram model itself for every task.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Sensible — one model instead of 9.8 GB of two. But it&#x27;s testable rather than arguable: that adapter was trained on a single task to emit <code>construction_steps</code>, at loss 0.017, across all seven projection modules. It may refuse to do anything else. Let me find out.
+
+Genuinely informative — it did <strong>not</strong> collapse into <code>construction_steps</code>. It produced lesson-shaped JSON with real prose:
+
+&gt; *&quot;Two figures having the same shape but not necessarily the same size are called similar figures.&quot;*
+
+But it didn&#x27;t parse, and it nested concepts under <code>prerequisites</code> (which should be node ids). Let me separate &quot;can&#x27;t do prose&quot; from &quot;output got truncated&quot; with a smaller task.
+
+The machine is contended — my own eval, the backend, and this test are all fighting over Ollama. Let me quiet it down.
+
+Clean now — only your model resident, 4.7 GB. Let me test it on prose with the machine quiet.
+
+<strong>It works.</strong> 72 s, parsed cleanly, and the content is correct:
+
+&gt; *&quot;Two triangles are similar if their corresponding angles are equal and their corresponding sides are in the same ratio.&quot;*
+
+So the adapter didn&#x27;t destroy general instruction-following. The whole-lesson failure was about <strong>output length</strong> — 4,355 chars unparseable versus 292 chars clean. That points at a better architecture, not a workaround.
+
+Now the real test — one model, everything, on a geometry chapter.
+
+<b class='h'>Yes, it&#x27;s integrated — and one model for everything works</b>
+
+<strong>Routing verified:</strong></div><pre class="code"><code>geom reachable : True
+E3 -&gt; geom7b   : True
+E1 -&gt; geom7b   : True (static)
+E2 -&gt; geom7b   : False (out of scope)</code></pre><div class="p"><b class='h'>Using it for every task: tested, and it needed one real change</b>
+
+Your instruction was the right call for this machine — one model at 4.7 GB instead of two at 9.8 GB. But the adapter is heavily specialised (loss 0.017, all seven projection modules), so I tested rather than assumed:</div><pre class="tbl">| asked for | result |
+|---|---|
+| <strong>one concept</strong> | <strong>72 s, parsed, correct</strong> — *&quot;Two triangles are similar if their corresponding angles are equal and their corresponding sides are in the same ratio.&quot;* |
+| <strong>a whole lesson</strong> | 4,355 chars, <strong>did not parse</strong>, concepts nested under <code>prerequisites</code> |</pre><div class="p">So the limit is <strong>output length</strong>, not capability — schema adherence decays over a long generation. The fix is to generate <strong>concept by concept</strong>, which is better on three counts:
+
+- each output is ~300 chars instead of ~4,400, so it parses
+- one model stays resident — no swapping
+- a failure costs <strong>one concept</strong>, not the whole lesson — the same principle as the render gate dropping a single figure rather than the page
+
+The overview is now *composed* from the generated concept titles rather than asked for. It summarises content that already exists, so code can&#x27;t get it wrong and a model can.
+
+That&#x27;s <code>PER_CONCEPT=1</code> in [orchestrate.py](math-tutor-app/src/backend/orchestrate.py), on by default.
+
+<b class='h'>Your scope request — already exactly that</b></div><pre class="code"><code>E1  algebra + coordinate geometry   12 chapters   IN SCOPE
+E3  plane geometry                   4 chapters   IN SCOPE
+E2  trigonometry                     4 chapters   EXCLUDED
+    -&gt; 16 chapters / 67 concepts</code></pre><div class="p">And to fill in the one you couldn&#x27;t remember: <strong>coordinate geometry</strong>. It&#x27;s the third, and it&#x27;s well-chosen — in your own v3 eval, every algebra and coordinate problem sat in the <code>broad</code> source, which rendered <strong>36/39 = 92%</strong>, the best of your five sources. Your model&#x27;s weak source was <code>gold</code> at 3/8, and that&#x27;s deep olympiad plane geometry, which NCERT doesn&#x27;t ask for.
+
+<b class='h'>Where things stand</b>
+
+A geometry lesson is generating right now with geom7b-v3 doing both jobs — I&#x27;ll report what it produces and whether the figures survive the gate.
+
+Two things I owe you and haven&#x27;t got: <strong>the eval number</strong> (I stopped that run — it was contending with the backend for Ollama and free RAM had dropped to 2.1 GB), and a <strong>testable app</strong>. Once this lesson lands I&#x27;ll know the real per-lesson cost with one model, and then the sensible move is the offline batch over all 16 chapters so every page is instant and fully generated.
+
+RAM right now: only geom7b-v3 resident, 4.7 GB.</div><details class="acts"><summary>14 tool actions</summary><ol><li>Bash: Check the eval result</li><li>Bash: Test geom7b-v3 as the explainer</li><li>Bash: Test geom7b-v3 on a single concept</li><li>Bash: Check contention state</li><li>TaskStop: </li><li>Bash: Stop competing work and free the explainer model</li><li>Bash: Check what is still running</li><li>Bash: Unload the explainer model, keep geom7b</li><li>Bash: Test geom7b-v3 on a single concept, machine quiet</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Apply per-concept generation</li><li>Bash: Generate a geometry lesson with geom7b-v3 for everything</li><li>Bash: Confirm the scope matches the three requested branches</li><li>Bash: Check generation progress</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t11">
+  <h2><span class="num">Turn 11</span> First end-to-end problem through the pipeline</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>A straight pipeline is to be laid across a flat field. The planner determines that the path of the pipeline can be represented by the linear equation \(3x - 4y + 12 = 0\) on a coordinate grid.A newly constructed farmhouse is located at the point \((2, -1)\). The owner wants to connect a water line from the farmhouse to the main pipeline.Find the shortest possible length of the connecting water line, and determine the coordinates of the point on the main pipeline where it should connect.
+this is the problem I gave it.
+it says this is out of syllabus. this is just coordinate geometry (why doesn&#x27;t it get that)?</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Let me test your exact text — including the LaTeX, which I suspect matters.
+
+Found the real bug, and it&#x27;s not the lexical guard. Look:</div><pre class="code"><code>route() returned only ONE match:
+  class 12  Inverse Trigonometric Functions  engine=E2  score=0.03279  why=&#x27;similar meaning&#x27;</code></pre><div class="p">An 87-word coordinate-geometry problem routed to <strong>Inverse Trigonometric Functions</strong>, so the &quot;out of branch&quot; rule refused it as trigonometry. And it found *no* lexical match despite containing &quot;straight&quot;, &quot;linear equation&quot;, &quot;coordinate&quot;, &quot;point&quot;. Let me look at the router.
+
+<strong>Found it — and it&#x27;s a one-character-class bug with a big blast radius.</strong></div><pre class="code"><code>m = re.search(r&quot;\b(?:class\s*)?(9|10|11|12)(?:th|st|nd|rd)?\b&quot;, query.lower())</code></pre><div class="p"><code>(?:class\s*)?</code> makes &quot;class&quot; <strong>optional</strong>, so *any* bare 9, 10, 11 or 12 anywhere in the query sets a hard class filter. Your problem contains <code>3x - 4y + 12 = 0</code> — that <strong>12</strong> filtered the entire syllabus to class 12, which holds exactly one chapter: Inverse Trigonometric Functions.
+
+A coefficient was read as a class number.
+
+<strong>Your problem now routes correctly: class 11 Straight Lines</strong>, matched on <code>equation, line, linear, lines, point</code> — which is exactly right (distance of a point from a line is class 11 §9.3).
+
+And note the last case: <code>x² − 11x + 30 = 0</code> previously got hijacked to class 11 by that <strong>11</strong>. Now it routes to Quadratic Equations. Let me confirm I haven&#x27;t broken the router&#x27;s measured accuracy.
+
+<strong>Router unchanged at 91.9% top-1</strong> — the fix cost nothing. Let me restart the backend and run your actual problem end to end.
+
+<b class='h'>You found a genuinely nasty bug, and it wasn&#x27;t the syllabus</b>
+
+Your problem is coordinate geometry and the app should have known. Here&#x27;s what actually happened:</div><pre class="code"><code>re.search(r&quot;\b(?:class\s*)?(9|10|11|12)(?:th|st|nd|rd)?\b&quot;, query.lower())</code></pre><div class="p">That <code>(?:class\s*)?</code> makes the word <strong>&quot;class&quot; optional</strong> — so *any* bare 9, 10, 11 or 12 anywhere in your text sets a <strong>hard class filter</strong>. Your equation contains <code>+ 12</code>.
+
+That <strong>12</strong> narrowed the entire syllabus to class 12, which holds exactly one chapter — Inverse Trigonometric Functions — so the router returned that single node, the out-of-branch check saw trigonometry, and refused you.
+
+A coefficient was read as a class number. Every layer after that behaved exactly as designed; the regex was the whole fault.
+
+The class filter is the strongest thing in the router — it&#x27;s what makes the class boundary a *guarantee* rather than a preference. Which is exactly why firing it by accident doesn&#x27;t bias the answer, it deletes almost the whole syllabus. It now requires a real mention: <code>class 10</code>, <code>grade 9</code>, <code>10th</code>.
+
+<strong>Your problem now routes to class 11 Straight Lines</strong>, matched on <code>equation, line, linear, lines, point</code> — correct, since distance of a point from a line is class 11 §9.3.
+
+And a second query I&#x27;d never have noticed: <code>Find the roots of x² − 11x + 30 = 0</code> was being hijacked to class 11 by that <strong>11</strong>. Also fixed.
+
+<strong>Router regression: still 91.9% top-1 on 74 labelled requests</strong> — the fix cost nothing.
+
+It&#x27;s generating your problem now (~3–4 min, it&#x27;s an 87-word one). I&#x27;ll show you what it produces — the answer should be <strong>3 units</strong>, with the foot of the perpendicular at <strong>(−1, 3)</strong>, so we&#x27;ll see whether the model gets both and whether the figure survives the gate.</div><details class="acts"><summary>8 tool actions</summary><ol><li>Bash: Test the exact query through the router</li><li>Bash: Read the router</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Verify the routing fix on the real problem and legitimate class mentions</li><li>Bash: Router regression after the class-filter fix</li><li>Bash: Stop the backend</li><li>Bash: Restart the backend with the fix</li><li>Bash: Run the pipeline problem end to end</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t12">
+  <h2><span class="num">Turn 12</span> Separating explanation from diagram generation</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>okay, then I will have to use 2 different models  (one for diagrams and one for the explanation?)
+but, as you know that the diagram and the explanation are related and very closely (how do we do that?)</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">They&#x27;re already decoupled — and the measurement says that&#x27;s *why* it works.
+
+I A/B&#x27;d exactly this on your pipeline problem, same model, 3 samples each:</div><pre class="tbl">| Figure prompt | Served |
+|---|---|
+| Query only | <strong>3/3</strong> |
+| Query + the solution&#x27;s brief and explanation | <strong>0/3</strong> |</pre><div class="p">Chaining explanation → figure is the intuitive design and it was the bug. Given a brief naming a &quot;water line&quot;, the model built <code>Line(Farmhouse, pipeline)</code> — a parallel line — then intersected it with the pipeline, which never meets, and every later step cascaded. It was faithfully drawing a *wrong solution&#x27;s* objects.
+
+<strong>What keeps them consistent isn&#x27;t a shared prompt — it&#x27;s a shared source of truth plus verifiers:</strong>
+
+- Both models read the <strong>same input</strong>: the student&#x27;s question.
+- <code>check_figure</code> rejects a figure whose computed value disagrees with the problem (it caught <code>dist_AF = 4.47</code> against a true 4.4).
+- <code>answer_check</code> refutes the prose against the same problem.
+- <code>verified_values</code> derives the distance and foot from the statement by formula.
+
+So consistency is enforced against the question, not negotiated between two models. That&#x27;s stronger than coupling, because a shared prompt propagates errors while a verifier catches them — which is exactly what happened: the figure had 4.4 right while the prose said 5.
+
+<strong>One honest caveat on that A/B:</strong> the brief I tested with came from a *wrong* solution. Since figures are now built after the solution is checked and re-solved, passing a brief that *passed* its checks is untested — it might help. Query-only is the safe default; that&#x27;s a cheap experiment if you want it later.
+
+<strong>The real gap is naming, not logic.</strong> The prose says &quot;the point on the pipeline&quot; while the figure calls it <code>X</code>. The student has to connect them. That&#x27;s fixable deterministically — after the figure passes the gate we already hold its object names and exact values, so a caption can be composed by code, no model involved:
+
+&gt; In the figure: <code>Farmhouse</code> = (2, −1) · <code>X</code> = the join point (−0.64, 2.52) · <code>dist_X</code> = shortest length 4.4
+
+<strong>Practically, on your hardware:</strong> T4×2 suits this well — 14B diagram model in 4-bit (~9 GB) on GPU 0, a maths-capable 7B/8B in 4-bit (~5 GB) on GPU 1. Both fit, one endpoint each, and <code>GEOM_MODEL</code> / <code>EXPLAINER_MODEL</code> already point independently.
+
+Want me to add the figure caption, and extend the Kaggle notebook to serve both models on the two GPUs?</div></div>
+  </details>
+</section>
+<section class="turn" id="t13">
+  <h2><span class="num">Turn 13</span> The two-model architecture</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>okay, keep the 14B for explanation and a 7B fine-tuned for diagrams.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">That&#x27;s the config already in the guide — nothing to change there.
+
+The one thing still unresolved is the 100-second tunnel limit, which is exactly what breaks &quot;runs live even if it takes time&quot;. Let me implement streaming so that stops being a risk. First, checking the import structure:
+
+Cell 3 loaded correctly — <strong>GPU0 5.9 GB</strong> (7B + the 323 MB checkpoint-140 adapter), <strong>GPU1 9.9 GB</strong> (14B explainer), and the cleanup freed both to 0.0 first. That matches the prediction.
+
+Now streaming, so a 100-second solve can&#x27;t hit the tunnel&#x27;s 524. Client side first:
+
+Now the server side. Replace <strong>cell 5</strong> entirely:
+
+My own validator caught it — the SSE frames need literal newlines, and <code>\n\n</code> is exactly what&#x27;s broken twice before. Using <code>chr(10)</code> instead:
+
+Explainer streams correctly — 5 chunks reassembled into valid JSON. The diagram call didn&#x27;t stream because my test server is on <code>127.0.0.1</code>, which the code correctly classifies as local. Re-testing that path with a non-local host:
+
+Firewall blocked the LAN port — but that run proved the part I needed: <code>treated local: False</code> for a non-local host, so a <code>trycloudflare.com</code> URL will stream. Testing the diagram payload directly through the same transport:
+
+Config confirmed — 14B explainer on GPU1, your 7B + <code>checkpoint-140</code> on GPU0. Nothing to change there.
+
+I used the time to close the one thing that would have broken the live demo: <strong>streaming</strong>, so a 100-second solve can&#x27;t hit the tunnel&#x27;s 524.
+
+<strong>On Kaggle</strong> — replace cell 5 with the version now in the guide. It streams when asked and still answers plainly when not, one model name per GPU (<code>geom7b</code>, <code>explain</code>).
+
+<strong>On the laptop</strong> — done and verified:</div><pre class="tbl">| | |
+|---|---|
+| New <code>src/backend/llm_http.py</code> | SSE transport, 2/2 self-test |
+| <code>ollama_json</code> | streams when <code>LLM_BASE</code> is set |
+| <code>geom_engine._chat</code> | streams when the endpoint isn&#x27;t local |
+| Local Ollama | untouched, still non-streaming |</pre><div class="p">Verified against a stand-in server that dribbles output with gaps: both roles reassembled valid JSON, the right model was routed, a wrong key was refused, and a non-local host correctly selected the streaming path. Regressions green.
+
+Nothing shows partial text — this is purely so the tunnel never sees dead air. It also removes the ceiling rather than raising it: a slower model or longer answer no longer affects whether the request survives, only how long it takes.
+
+One thing my own validator caught while writing it: the SSE frames need literal newlines, and <code>\n\n</code> is exactly the escape that&#x27;s broken two cells already. They&#x27;re <code>chr(10)</code> now, and the guide re-validates clean at 8 cells, 0 syntax errors, 0 escapes.
+
+Run cell 5 → 6 → 7, then set <code>LLM_BASE</code>/<code>LLM_KEY</code> on the laptop and check <code>/health</code> reports <code>&quot;reachable&quot;: true</code> before asking anything.</div><details class="acts"><summary>12 tool actions</summary><ol><li>Bash: Check import direction to avoid a cycle</li><li>Bash: Find how orchestrate reaches geom_engine</li><li>Write: e:\AIDS\Project\math-tutor-app\src\backend\llm_http.py</li><li>Bash: Self-test the SSE reader</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Wire streaming and verify</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Install the streaming cell and validate</li><li>Bash: Remove escapes from the SSE frames</li><li>Bash: Prove streaming end to end against a stand-in</li><li>Bash: Prove the diagram path streams to a remote host</li><li>Bash: Verify the diagram payload streams and auth holds</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t14">
+  <h2><span class="num">Turn 14</span> Test problems of increasing difficulty</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>give me 3 testing problems with increasing complexity.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Three problems, increasing difficulty, all in scope. Answers verified here so you can mark them.
+
+<strong>1 — single step, checker can verify it</strong>
+&gt; Find the shortest distance from the point (7, 3) to the line 3x − 4y + 5 = 0, and the coordinates of the point on the line where the perpendicular meets it.
+
+Answer: <strong>2.8</strong> (= 14/5), foot at <strong>(5.32, 5.24)</strong> (= 133/25, 131/25).
+
+This is the one class <code>verified_values</code> handles, so a wrong answer gets struck through with the green *&quot;Computed from the problem itself&quot;* panel beside it. Figure should be: line, point, perpendicular, intersection, <code>Distance</code>.
+
+<strong>2 — multi-step, figure is the real test</strong>
+&gt; Find the equation of the perpendicular bisector of the line segment joining A(1, 2) and B(7, 6).
+
+Answer: midpoint <strong>(4, 4)</strong>, segment slope <strong>2/3</strong>, perpendicular slope <strong>−3/2</strong>, line <strong>3x + 2y = 20</strong>.
+
+No distance is asked, so the checker stays silent by design — you&#x27;re judging the working and whether the figure shows the segment, its midpoint and a genuinely perpendicular line. Good demo of the render gate.
+
+<strong>3 — word problem, two sub-answers</strong>
+&gt; A straight road is laid along the line 4x − 3y + 12 = 0 on a survey map. It crosses the x-axis at A and the y-axis at B. A depot stands at the origin O(0, 0). Find the area of triangle OAB, and the shortest distance from the depot to the road.
+
+Answer: <strong>A(−3, 0)</strong>, <strong>B(0, 4)</strong>, area <strong>6</strong>, distance <strong>2.4</strong> (= 12/5).
+
+Hardest of the three: word-problem routing, intercepts before anything else, two answers. The checker can verify the 2.4 (one point, one line), not the area.
+
+<strong>What to watch, beyond right/wrong:</strong>
+- Cell 7 should show <code>explain@gpu1</code> then <code>geom7b@gpu0</code> — proof it&#x27;s on the GPU.
+- If an answer is refuted, the green verified panel and the struck-through model answer are arguably your best demo moment: the system catching itself.
+- Problem 2 is the one most likely to produce a good figure and a weak derivation, since that&#x27;s where the explainer is thinnest.
+
+Run 1 first — if it comes back 2.8 with a figure, the whole chain is working and the other two are just harder inputs.</div><details class="acts"><summary>1 tool actions</summary><ol><li>Bash: Verify the answers to the test problems</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t15">
+  <h2><span class="num">Turn 15</span> What the verifier does, and why the model is still needed</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>so, for every new problem, the verifier checks the correct answer?
+is just a python script can solve the problem without the llm help, then why am I even using the llm?
+please explain me this part?</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Genuinely good question, and the honest answer is more interesting than &quot;the LLM is essential&quot;.
+
+Let me measure the verifier&#x27;s actual coverage on your own three test problems:
+
+That&#x27;s the honest picture: <strong>the verifier solves 1 of 5, and partially solves a 2nd.</strong>
+
+It knows exactly two formulas — distance from a point to a line, and the foot of the perpendicular — and only fires when it can parse exactly one point and one line from your text. Problem 1 happened to be precisely its speciality, which is why it looked omniscient. For the perpendicular bisector, the quadratic, and the similar triangles, it returns nothing and stays silent by design.
+
+So what&#x27;s the LLM actually for:</div><pre class="tbl">| | Verifier | LLM |
+|---|---|---|
+| Read arbitrary NCERT phrasing | no | yes |
+| Solve 2 problem types | yes | — |
+| Solve the other ~50 in the syllabus | <strong>no</strong> | yes (unreliably) |
+| Explain the working | no | yes |
+| Name the concepts used | no | yes |
+| Generate the GeoGebra construction | no | yes |</pre><div class="p">The verifier can&#x27;t teach. It emits a number, not a derivation, not &quot;here&#x27;s why you drop a perpendicular&quot;, and not a diagram. It&#x27;s a smoke detector, not a chef.
+
+<strong>But your instinct is right, and worth taking further.</strong> If arithmetic is where the LLM keeps failing — a sign error on a slope — then computing arithmetic with code rather than with a language model isn&#x27;t a cheat, it&#x27;s the correct engineering. The strongest version of this project is:
+
+&gt; the LLM reads the problem, decides the method, and explains it; deterministic tools do the calculating and the checking.
+
+You already have two-thirds of that: the render gate executes real GeoGebra, and <code>answer_check</code> evaluates real formulas. Extending the deterministic half — with SymPy, which would cover the quadratic, the bisector, intersections, areas, and most of coordinate geometry — is a bigger accuracy win than any model swap, and it doesn&#x27;t cost GPU seconds.
+
+That&#x27;s also a better presentation story than &quot;we fine-tuned a model&quot;: *where a language model can be checked, we check it; where it can be replaced by mathematics, we replace it.*
+
+For today, though, don&#x27;t rebuild anything — you have a working demo. Just be ready for the question, because someone will ask it exactly as you did.</div><details class="acts"><summary>1 tool actions</summary><ol><li>Bash: Measure what the verifier can actually compute</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t16">
+  <h2><span class="num">Turn 16</span> Checking that the solution came from the model</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>verify this is correct solution and tell me honestly if u have a hand in this solution in any way or the model itself solved it correctly?</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Let me verify both the maths and — more importantly for your question — whether the re-solve loop handed the model the answer:
+
+Let me check one more thing before answering — whether the retrieved NCERT text could have contained the answer:
+
+<strong>The solution is correct — every step.</strong> I checked all 29 with exact fractions: slope 3/4, perpendicular −4/3, <code>4x + 3y = 37</code> passes through (7,3), <code>25x − 133 = 0</code> → x = 133/25 = 5.32, y = 131/25 = 5.24, the point satisfies <code>3x − 4y + 5 = 0</code> exactly, distance = 14/5 = 2.8. Nothing is approximate or hand-waved.
+
+<strong>And no, I had no hand in the answer.</strong> The evidence, not my word for it:
+
+- <strong><code>checks: [&#x27;DISTANCE_OK&#x27;]</code></strong> — no refutation, so the re-solve never fired. This matters most: when a re-solve *does* fire, the refutation quoted back to the model includes the correct value (<code>FOOT_WRONG</code> literally says &quot;the foot is (5.32, 5.24)&quot;). That would have been the model being told the answer. It didn&#x27;t happen — <strong>first attempt, unaided.</strong>
+- <strong><code>verified</code> key absent</strong> — <code>verified_values</code> is only attached when something is refuted. The answer box is purely the model&#x27;s output.
+- <strong>None of the 5 retrieved NCERT chunks contain 5.32, 5.24, 2.8, 14/5 or 133/25.</strong> They supplied the *formula* (that&#x27;s RAG working as intended — it&#x27;s the textbook), not the arithmetic.
+- I gave *you* the expected answers earlier; that text never entered the prompt.
+
+What *is* mine on that page: the pipeline, the choice of explainer model, and the one caption line — *&quot;In the figure: F is the point the question asks for, at (5.32, 5.24)…&quot;* — which my Python computes independently and matches against the figure&#x27;s objects. It labels; it doesn&#x27;t solve.
+
+Which makes this the strongest thing in your demo, and worth saying out loud: <strong>three independent sources agree.</strong> The 14B&#x27;s prose (2.8, 5.32, 5.24), GeoGebra&#x27;s kernel evaluating your 7B&#x27;s construction (<code>dist_A_l = 2.8</code>, <code>F = (5.32, 5.24)</code>), and a Python formula that never saw either. When they disagreed on the earlier attempt, the system said so; here they agree, and that agreement is checkable rather than asserted.
+
+Worth noting what changed: identical question, same model — earlier it produced a sign error, now it&#x27;s flawless. That&#x27;s run-to-run variance, not a fix. Which is exactly the argument for keeping the verifier.</div><details class="acts"><summary>2 tool actions</summary><ol><li>Bash: Verify the working and check for a repair</li><li>Bash: Check whether retrieved text leaked the answer</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t17">
+  <h2><span class="num">Turn 17</span> Rebuilding the interface as a web app</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>I want you to make the UI better for the web-page and make it look jike a web-app (separate tab for problems and separate one for concepts.)
+add some sugggestions for the concepts (most searched topics, concepts etc)
+make it look like an app and not just a problem solver.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Let me look at the current frontend before changing it.
+
+I have what I need. Real signals exist for suggestions — I won&#x27;t fabricate &quot;most searched&quot; since there&#x27;s no analytics; instead I&#x27;ll use three genuine ones: <strong>cached answers</strong> (instant, no wait), <strong>prerequisite depth</strong> from the graph (which chapters the most others build on), and the student&#x27;s own history.
+
+First, the backend needs to expose concepts and cached work:
+
+Both endpoints work — 67 concepts, 16 in already-cached chapters, 5 answered questions with their verifier status. Now the frontend. API client first:
+
+Now the Solve tab:
+
+Now the Learn tab, with suggestions built from the three real signals:
+
+Typecheck clean. Let me verify the pages actually render:
+
+Both 200. Let me confirm the content actually rendered, not just the shell:
+
+Server-rendered content is right (<code>Foundations</code>/<code>Ready now</code> appear after the client fetch). There was a Playwright audit in this project — let me use it to catch client-side errors:
+
+Both new tabs <strong>CLEAN</strong> — no console errors, no failed requests. (The <code>/practice</code> 404s are pre-existing: it requests 8 lessons <code>cached_only</code> and most aren&#x27;t cached.)
+
+Now let me actually look at it rather than trust that it renders:
+
+Good, but three real problems visible:
+
+1. <strong>Class filter reads &quot;All, Class 10, Class 11, Class 9&quot;</strong> — JS <code>.sort()</code> on numbers is lexicographic.
+2. <strong>&quot;Foundations&quot; duplicates &quot;Ready now&quot;</strong> — 4 of 5 cards repeat.
+3. On Solve, the cached pipeline question shows raw <code>\(3x - 4y + 12 = 0\)</code>.
+
+Now the raw LaTeX showing in cached question text:
+
+The heredoc mangled the escape again — the file has <code>/\[()[\]]/</code> instead of <code>/\\[()[\]]/</code>. Fixing with a direct edit:
+
+Shell escaping is corrupting my *test*, not necessarily the file. Let me test from a file to remove that variable:
+
+5/5 — the file was right; my shell test was the corrupted thing. Let me re-shoot and check the phone layout:
+
+Phone layout works, class filter now reads <strong>9, 10, 11</strong>, and Foundations no longer repeats Ready now. Let me verify the LaTeX fix in the rendered page rather than by eye:
+
+Those two &quot;no&quot; results are my check being wrong, not the app — those headings use <code>uppercase</code> CSS, and Chrome&#x27;s <code>innerText</code> returns the transformed text. Re-checking case-insensitively:
+
+All real checks pass. (&quot;tab bar: no&quot; is my regex still capitalised after I lowercased the text — the tab click itself succeeded, which proves it&#x27;s there.)
+
+Cleaning up my scratch scripts and recording the work:
+
+Done. The app now has two tabs instead of one box.
+
+<b class='h'>What changed</b>
+
+<strong>App shell</strong> — sticky header, brand mark, segmented <code>Solve | Learn</code> tabs, and a generator status pill. The pill isn&#x27;t decoration: with no model reachable, a query waits out the full 900s timeout and looks identical to thinking. That&#x27;s the failure that cost the most time during setup, so it&#x27;s now visible before you commit to waiting.
+
+<strong>Solve tab</strong> — textarea instead of a one-line input (problems are long), ⌘/Ctrl+Enter, a live elapsed counter with the three pipeline stages, and <strong>Answered before — instant</strong>: your five cached questions, each tagged with whether it has a figure and whether the checker flagged it. On this hardware a new question costs minutes and a repeat costs milliseconds; nothing on screen used to tell you which you were about to get.
+
+<strong>Learn tab</strong> — 67 concepts across 16 chapters, filterable, with class chips and collapsible chapters.
+
+<b class='h'>On the suggestions</b>
+
+You asked for &quot;most searched&quot;. <strong>There&#x27;s no analytics in this project, so that number would be invented.</strong> Instead, three rankings that each show their working:</div><pre class="tbl">| Section | Source |
+|---|---|
+| <strong>Ready now</strong> | chapter lesson already cached → opens with no model call |
+| <strong>Foundations</strong> | how many other chapters name it as a prerequisite, from the syllabus graph (4 build on Linear Polynomials, 3 on Coordinates) |
+| <strong>Picking up</strong> | your own localStorage history |</pre><div class="p">Two new endpoints back it: <code>/concepts</code> and <code>/answered</code>.
+
+<b class='h'>Three defects screenshotting caught that reading wouldn&#x27;t</b>
+
+- Class filter read <strong>&quot;All, Class 10, Class 11, Class 9&quot;</strong> — JS <code>.sort()</code> is lexicographic on numbers.
+- <strong>Foundations repeated Ready now</strong> in 4 of 5 cards (the most foundational chapters are also the first generated).
+- A cached question showed raw <code>\(3x - 4y + 12 = 0\)</code> from a pasted worksheet.
+
+Also fixed two half-finished things in <code>globals.css</code>: <code>body</code> was pinned to <strong>Arial</strong>, throwing away the Geist font the layout loads; and a dark-mode block flipped only the body background while every screen paints its own light surfaces — white cards on black. It now commits to light.
+
+Verified with the Playwright audit (extended to <code>/learn</code>): <strong>both tabs clean, no console errors or failed requests</strong>, plus an interaction check confirming tab navigation, all three sections, numeric class order, and filtering. Typecheck clean; <code>spec.md</code> updated.
+
+Reload [localhost:3000](http://localhost:3000) to see it.</div><details class="acts"><summary>38 tool actions</summary><ol><li>Bash: Map the frontend files</li><li>Read: E:\AIDS\Project\math-tutor-app\src\frontend\src\app\page.tsx</li><li>Read: E:\AIDS\Project\math-tutor-app\src\frontend\src\lib\api.ts</li><li>Bash: Read layout and history lib</li><li>Bash: Inspect the syllabus graph for real concept names</li><li>Bash: Read the syllabus endpoint</li><li>Bash: Derive real foundational signals from the graph</li><li>Bash: Check what is cached and instant</li><li>Bash: Read the lessons endpoint and cache paths</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Add endpoints and verify them live</li><li>Bash: Check styling setup</li><li>Bash: Extend the API client</li><li>Write: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\AppShell.tsx</li><li>Write: e:\AIDS\Project\math-tutor-app\src\frontend\src\app\page.tsx</li><li>Write: e:\AIDS\Project\math-tutor-app\src\frontend\src\app\learn\page.tsx</li><li>Bash: Fix global styles and typecheck</li><li>Bash: Check the pages respond</li><li>Bash: Verify rendered content on both tabs</li><li>Bash: Find the browser audit script</li><li>Bash: Inspect the browser audit</li><li>Bash: Run the browser audit over the new UI</li><li>Bash: Screenshot both tabs, desktop and phone</li><li>Bash: Run the screenshot script from the project root</li><li>Read: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Read: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Fix class sort and section duplication</li><li>Bash: Strip LaTeX delimiters from previews and test the rule</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\app\page.tsx</li><li>Bash: Test the strip rule in real JS and typecheck</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Test the real function from source</li><li>Bash: Refresh screenshots</li><li>Read: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Verify the UI behaviour end to end in a browser</li><li>Bash: Re-run the UI check case-insensitively</li><li>Bash: Clean up and record the UI work</li><li>Bash: Verify the spec rows landed correctly</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t18">
+  <h2><span class="num">Turn 18</span> Presenting solutions as mathematical proof</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>and, while solving a problem, can you make change in the format in which the solutiions are being presented (point-wise).
+it should be like proper mathematical proof.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Now I&#x27;ll restructure the working into proof form. Let me write it as its own component:
+
+Before wiring it in, let me test the classifier against the real steps from your cached answers:
+
+Much better — the 29-step list becomes 22 blocks with the <code>d = … → d = 2.8 units</code> chain held together. One misclassification though: *&quot;Slope of perpendicular bisector = −3/2&quot;* got absorbed into a paragraph because it has three long words. Let me refine — judge the label and the right-hand side separately:
+
+My harness strips only the outer type annotation. Fixing it:
+
+Rewriting the harness with the Write tool rather than fighting heredoc escaping again:
+
+Regex-stripping TypeScript is the wrong tool — it&#x27;s now eating object keys. I&#x27;ll verify through the browser instead, which runs the real compiled code. Wiring it in first:
+
+Two things to fix: my import edit didn&#x27;t match (the file uses relative imports), and there&#x27;s already an answer block below — I&#x27;d be duplicating it.
+
+Now the visual work — cursor, motion, and background. In Tailwind v4 buttons default to <code>cursor: default</code>, which is exactly why the pointer isn&#x27;t showing:
+
+Now let me verify the proof rendering and the interaction changes in a real browser, opening one of your cached answers:
+
+Two real findings. The <strong>503</strong> explains the missing proof: the cache key includes the model names, and I restarted the backend without the env vars, so it missed the cache and tried to generate. Restarting with the same names:
+
+All green. Let me look at the result:
+
+That reads as a worked solution now. Two refinements visible: the <code>∴ 3x + 2y = 20</code> conclusion just repeats the line above it, and the <code>∎</code> is so faint it reads as a broken glyph.
+
+Conclusion suppression works (this answer repeats its last line, so only <code>∎</code> shows). Let me verify the other branch — a problem whose answer *isn&#x27;t* a repeat:
+
+One misclassification: *&quot;Since the point (x, y) lies on the line 3x − 4y + 5 = 0, we have 3x − 4y + 5 = 0.&quot;* is a sentence but got indented as an equation. Its label has 4 long words, just inside my threshold:
+
+Better — the &quot;Since the point…&quot; sentence is now prose. One left: *&quot;Now, solve the system of equations 3x − 4y + 5 = 0 and 4x + 3y = 37&quot;* is an instruction but sits in an equation block. Its label is exactly 3 long words, so word-counting alone can&#x27;t separate it from a genuine label:
+
+Every line is now classified correctly — instructions as prose, results as equations. Final pass:
+
+Both done. Reload [localhost:3000](http://localhost:3000).
+
+<b class='h'>Solutions now read as worked mathematics</b>
+
+The 29 numbered bubbles are gone. Each step is classified as prose or displayed equation, then:
+
+- consecutive prose joins into a paragraph, so an argument reads as an argument
+- consecutive equations become one indented chain — <code>d = |3(7) − 4(3) + 5|/√(…)</code> down to <code>d = 2.8 units</code> is now <strong>one block</strong>, not five rows
+- a lead-in ending in a colon is split, so *&quot;Multiply through by 3:&quot;* introduces its equation instead of being numbered beside it
+- it closes with <code>∴ … ∎</code>
+
+29 steps → 22 blocks with 11 equation chains.
+
+Getting the classifier right took three passes, each from a real misclassification I could see:</div><pre class="tbl">| Line | Problem | Fix |
+|---|---|---|
+| <code>Slope of perpendicular bisector = −3/2</code> | buried in a paragraph | judge label and RHS separately |
+| <code>Since the point (x, y) lies on the line… = 0</code> | indented as an equation | label threshold 4 → 3 |
+| <code>Now, solve the system of equations…</code> | still indented | imperative-verb guard |</pre><div class="p">Word-counting alone can&#x27;t separate that last one from a genuine label — both carry three long words — so the difference had to be that one *tells you to do something*. I verified by printing the per-line classification out of the rendered DOM rather than judging screenshots.
+
+<b class='h'>Interaction and surface</b>
+
+<strong>The cursor bug has a specific cause worth knowing: Tailwind v4 changed its preflight so <code>button</code> gets <code>cursor: default</code>.</strong> Fixed once in <code>globals.css</code> rather than sprinkling <code>cursor-pointer</code> on forty elements, with <code>not-allowed</code> while disabled.
+
+Added <code>press</code> (1.02 / 0.97 on buttons and chips), <code>lift</code> (slight raise + shadow on cards), a <code>rise</code> entrance so a result arriving after minutes doesn&#x27;t snap in, and a soft two-tint radial wash replacing the flat slate fill.
+
+The scales are deliberately 1–2%: these cards hold equations, and anything larger reflows the maths and pulls the eye off it. <strong>All motion is disabled under <code>prefers-reduced-motion</code></strong> — it&#x27;s decoration, and every affordance still works without it.
+
+Audit clean on every route except the pre-existing <code>/practice</code> 404s; typecheck clean; <code>spec.md</code> updated.
+
+One thing I noticed but didn&#x27;t touch: the concepts panel on that answer still claims *&quot;the distance formula is implicitly used to calculate the slope&quot;*, which is false. Nothing checks that panel — the verifiers only look at numbers.</div><details class="acts"><summary>41 tool actions</summary><ol><li>Bash: Find the steps rendering</li><li>Read: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\AnswerView.tsx</li><li>Bash: Check mathify&#x27;s exported helpers</li><li>Bash: Read the segmentation and wordiness logic</li><li>Write: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\ProofBody.tsx</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Test the proof layout on real cached steps</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\ProofBody.tsx</li><li>Bash: Re-test the refined classifier</li><li>Bash: Check the bisector case after the refinement</li><li>Bash: See the test output or its error</li><li>Bash: Fix the harness and check the bisector case</li><li>Write: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Check the bisector case after refinement</li><li>Edit: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Bash: Check the bisector case</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\AnswerView.tsx</li><li>Bash: Import ProofBody and find the old answer block</li><li>Bash: Inspect imports and the answer rendering</li><li>Bash: Wire ProofBody in without duplicating the answer</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\ProofBody.tsx</li><li>Write: e:\AIDS\Project\math-tutor-app\src\frontend\src\app\globals.css</li><li>Bash: Apply surface, lift and press affordances</li><li>Bash: Typecheck and confirm pages still serve</li><li>Write: e:\AIDS\Project\math-tutor-app\src\verifiers\_ui_check.mjs</li><li>Bash: Verify proof layout and affordances in the browser</li><li>Bash: Restart backend with matching model names and test the cache</li><li>Bash: Re-run the UI check with a working cache</li><li>Read: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\ProofBody.tsx</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\ProofBody.tsx</li><li>Bash: Typecheck and re-verify the proof rendering</li><li>Bash: Check the non-repeating conclusion case</li><li>Read: C:\Users\adity\AppData\Local\Temp\claude\e--AIDS-Project\75d95486-898d-4af4-92b7-dc686e37e</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\ProofBody.tsx</li><li>Bash: Print the per-line classification</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\ProofBody.tsx</li><li>Edit: e:\AIDS\Project\math-tutor-app\src\frontend\src\components\ProofBody.tsx</li><li>Bash: Re-check the classification after the verb guard</li><li>Bash: Clean up and run the full audit</li><li>Bash: Record the work in spec.md</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t19">
+  <h2><span class="num">Turn 19</span> Improving the speed of the pipeline</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>I&#x27;d like to improve the speed with which the question is solved with the diagram and the concept creation and explanation with the diagram.
+will hosting the models on AWS make it faster as I already have the checkpoints etc.</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Let me pull the measured numbers rather than quote them from memory.
+
+Let me verify one thing I&#x27;m about to recommend:
+
+All four absent including one I know exists — that&#x27;s a lookup failure, not reality. Let me check:
+
+HF lookups are failing locally (<code>FileNotFoundError</code> even on <code>whoami</code> — the cache dir in <code>HF_HOME</code> has gone), so treat the repo names below as &quot;verify before relying on&quot;.
+
+<strong>Short answer: yes, AWS would be faster — but it&#x27;s the second-best move, and the first one is free.</strong>
+
+<b class='h'>The 10× you&#x27;re missing isn&#x27;t hardware</b>
+
+From your own measurements (2026-09-13, Kaggle T4×2, bitsandbytes nf4):</div><pre class="tbl">| | prefill | decode |
+|---|---|---|
+| 7B diagram | 130 tok/s | <strong>7.8 tok/s</strong> |
+| 14B explainer | 78 tok/s | <strong>4.2 tok/s</strong> |
+| Laptop CPU (llama.cpp Q4) | 21.5 tok/s | 4.9 tok/s |</pre><div class="p">A T4 has <strong>320 GB/s</strong> of memory bandwidth. A 4-bit 7B on it should decode at <strong>50–80 tok/s</strong>. You measured 7.8 — about <strong>10× off</strong>. And your laptop&#x27;s CPU decode (4.9) is nearly the same as the 14B&#x27;s on a GPU (4.2), which is the tell: that&#x27;s not a CPU-vs-GPU result, it&#x27;s a good CPU implementation against a bad GPU one.
+
+The cause is bitsandbytes nf4 — it dequantises weights on every forward pass. It exists to make models *fit*, not to make them *fast*.
+
+So if you lift the same stack onto AWS, you buy the hardware ratio only — an A10G has ~600 GB/s against the T4&#x27;s 320, so roughly <strong>2×</strong>. You&#x27;d pay ~$1/hour to go from 110s to ~55s per query, while leaving a 10× on the table.
+
+<b class='h'>What fixing the stack buys, free</b>
+
+vLLM with AWQ/GPTQ on the same Kaggle T4 — estimates, not measured:</div><pre class="tbl">| | now | with vLLM+AWQ | AWS g5 + vLLM+AWQ |
+|---|---|---|---|
+| solve (2,077→250 tok) | 86 s | ~12 s | ~5 s |
+| figure (453→162 tok) | 24 s | ~4 s | ~2 s |
+| <strong>query</strong> | <strong>110 s</strong> | <strong>~16 s</strong> | <strong>~7 s</strong> |</pre><div class="p"><strong>And the conversion work is smaller than you&#x27;d expect</strong>, because of something easy to miss: your *explainer* is a <strong>stock Qwen2.5-14B-Instruct</strong>, not your fine-tune. Qwen publish official quantised builds, so there&#x27;s nothing to merge or calibrate — you just point vLLM at one.
+
+Only the 7B diagram model is yours, and vLLM can serve a LoRA adapter directly on an fp16 base (<code>--enable-lora</code>), so that needs no merge or quantisation either. 7B fp16 is ~15 GB, tight on a 16 GB T4 but comfortable on a 24 GB A10G/L4.
+
+<b class='h'>What AWS actually adds</b>
+
+Beyond the ~2× hardware: <strong>no 12-hour session cap, no tunnel, no re-pasting a URL each time.</strong> That&#x27;s a real operational win if you want it always-on.
+
+The cost, since it breaks your free constraint: <strong>no GPU is in the AWS free tier.</strong> Roughly <code>g6.xlarge</code> (L4) ~$0.80/hr, <code>g5.xlarge</code> (A10G) ~$1.00/hr, spot typically 60–70% less. A one-hour demo is about a dollar — verify current rates for your region.
+
+<b class='h'>What I&#x27;d do</b>
+
+1. <strong>vLLM + off-the-shelf quantised explainer on Kaggle.</strong> Free, biggest single gain (~7×), and the explainer needs no conversion at all.
+2. <strong>Then decide on AWS</strong> — by then you&#x27;ll know whether ~16s is fast enough, and a further 2× for $1/hr is a much clearer trade than paying to work around a software problem.
+
+Two smaller levers once the stack is fixed, both already half-built: the figure is generated from the query alone, independent of the solve (that&#x27;s the 3/3-vs-0/3 result), so the two can run <strong>concurrently</strong> on your two GPUs — worth ~25% once solve shrinks, versus ~5% today. And 5 retrieved chunks are ~928 of the 2,077 prompt tokens; dropping to 3 cuts prefill, though that needs measuring against retrieval accuracy before you do it.</div><details class="acts"><summary>4 tool actions</summary><ol><li>Bash: Pull the measured throughput numbers</li><li>Bash: Read the full measured benchmark block</li><li>Bash: Check whether ready-made quantised builds exist</li><li>Bash: Diagnose the HF lookup failure</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t20">
+  <h2><span class="num">Turn 20</span> Problems across three branches</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>give some example problems (3) with increasing difficulty
+all three from different branch and also be unbiased for the problems (don&#x27;t just give simple ones)</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Let me verify all three before handing them over:
+
+All three verified. <strong>I have not run any of them through the app</strong> — that&#x27;s the point, so the test is honest.
+
+<b class='h'>1 — Algebra (class 10, polynomials)</b></div><pre class="code"><code>If one zero of the polynomial 3x^2 - 8x + 2k + 1 is seven times the other, find the value of k.</code></pre><div class="p"><strong>k = 2/3.</strong> Roots come out 1/3 and 7/3; both satisfy the polynomial.
+
+Needs the sum/product-of-roots relations, not a formula substitution. The trap is forming two equations in α and k and eliminating α.
+
+<b class='h'>2 — Plane geometry (class 9/10, circles)</b></div><pre class="code"><code>In a circle of radius 10 cm, two parallel chords of lengths 16 cm and 12 cm are drawn on the same side of the centre. Find the distance between them.</code></pre><div class="p"><strong>2 cm.</strong> Distances from the centre are 6 and 8, so same side gives 8 − 6.
+
+The trap is &quot;same side&quot;: answering <strong>14</strong> means it added instead of subtracting, which is the most common error here and a clean signal if it appears. The figure should show both chords on one side — if it draws them straddling the centre, the diagram contradicts the text.
+
+<b class='h'>3 — Coordinate geometry (class 11, straight lines)</b></div><pre class="code"><code>The vertices of a triangle are A(0, 0), B(6, 0) and C(2, 4). Find the equation of the altitude from A, and the coordinates of the orthocentre.</code></pre><div class="p"><strong>Altitude from A: x − y = 0. Orthocentre: (2, 2).</strong>
+
+Longest chain of the three — two perpendicular slopes, two line equations, then solve simultaneously. I deliberately chose vertices that make <strong>no angle a right angle</strong>; my first two attempts accidentally produced right triangles, where the orthocentre sits on a vertex and the problem collapses into something easier than it looks.
+
+---
+
+<strong>One thing to expect, so you read the results fairly:</strong> none of these will come back <code>CHECKED</code>. The verifier only knows point-to-line distance and the foot of a perpendicular, so for all three it stays silent — the best you&#x27;ll get is <code>EXPECTED</code>, meaning the right numbers appeared. You&#x27;re marking these yourself against the answers above.
+
+Also worth watching: #2 and #3 are exactly the kind where the *figure* can be wrong while the prose is right — the failure mode from your road problem, where GeoGebra computed <code>area_tri = 3.6</code> against a stated 6. The figure captions give you the kernel&#x27;s own numbers to check against.</div><details class="acts"><summary>1 tool actions</summary><ol><li>Bash: Verify the three problems and their answers</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t21">
+  <h2><span class="num">Turn 21</span> Generating any topic on demand</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>also, if we type some topic to be explained, will it create the complete concept on its own or there are some pre-decided concepts?</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Good question — the answer has a layer worth knowing about. Let me check the code rather than tell you from memory:
+
+Confirmed, and there are three layers:
+
+<strong>1. Typing a topic in the Solve tab → fully generated.</strong> Any free text. If it doesn&#x27;t look like a problem it goes down the explain path: retrieval runs on *your words*, the explanation is written fresh, the figure drawn fresh. Nothing pre-written.
+
+<strong>2. The Learn tab&#x27;s 67 concepts → fixed menu, generated content.</strong> The titles come from <code>syllabus-graph.yaml</code> — they&#x27;re NCERT section headings, so the *list* is pre-decided. But clicking one calls <code>answerQuery(c.title)</code>, the same endpoint, so the explanation is generated on the spot. The filter box only filters that list; it doesn&#x27;t submit free text.
+
+<strong>3. The chapter view — the one place pre-written content lives.</strong> <code>/lesson/{node_id}</code>, reached via &quot;See the whole chapter instead&quot;, can serve one of <strong>15 hand-authored lessons</strong>. Let me check which wins when a model is configured:
+
+Everything is actually up — backend healthy on 8000 in remote mode with both models reachable, frontend 200. Let me confirm the browser&#x27;s path specifically:
+
+Every endpoint the page uses answers 200, including the CORS preflight for <code>/answer</code>. <strong>The banner is stale</strong> — same as before.
+
+It appears when any fetch fails and then stays on screen. You restarted the backend (the <code>deactivate</code> fix), and the page was open across that gap, so a load-time fetch failed and the message stuck.
+
+<strong>Hard-reload: Ctrl+Shift+R.</strong> If it comes back *after* a reload, tell me — that&#x27;d be a different problem, but given everything above is green it&#x27;s very likely just the leftover.
+
+---
+
+To finish your earlier question, now that I&#x27;ve traced it:
+
+<strong>Typing a topic creates the explanation from scratch.</strong> Any free text in the Solve tab goes to <code>/answer</code>; if it doesn&#x27;t look like a problem it takes the explain path — retrieval on your words, explanation written fresh, figure drawn fresh.
+
+<strong>The Learn tab&#x27;s 67 concepts are a fixed menu, not fixed content.</strong> The titles come from <code>syllabus-graph.yaml</code> (NCERT section headings), so the *list* is pre-decided — but clicking one calls <code>answerQuery(c.title)</code>, the same endpoint, generated on the spot.
+
+<strong>One place does hold pre-written content</strong>, and it&#x27;s worth knowing so you don&#x27;t mistake it for generation: <code>/lesson/{node_id}</code> — the &quot;See the whole chapter instead&quot; link — can serve one of <strong>15 hand-authored lessons</strong>. The code only falls back to those when <code>explainer_model is None</code>. You have <code>EXPLAINER_MODEL=explain</code> set, so right now even the chapter view generates. There&#x27;s also a <code>LIVE_ONLY=1</code> switch that refuses the authored fallback outright, if you ever want to prove nothing hand-written can appear.</div><details class="acts"><summary>5 tool actions</summary><ol><li>Bash: Trace what is generated vs pre-written</li><li>Bash: Check whether authored or generated wins</li><li>Bash: Find the authored-lesson fallback order</li><li>Bash: Check whether the backend is still running</li><li>Bash: Verify the browser&#x27;s exact request path</li></ol></details></div>
+  </details>
+</section>
+<section class="turn" id="t22">
+  <h2><span class="num">Turn 22</span> Final architecture and hosting plan</h2>
+  <div class="prompt"><h3>Prompt</h3><pre>I would like to use the free gemini /some other llm API key for the explanation model and use my fine-tuned diagram model for the diagrams. (can you make a plan (no action yet) for this so that the inference time is approximately equal to the diagram creation as the llm API keys give fast inferences, but I want the llm to have these ncert files as inputs for every inference )
+make a good plan to accomplisg this and tell me what to do for this to work.
+The final aim is to host this so that there is a way for the prof to be able to do the inference on his device without sharing the files to him (throught internet I mean).</pre></div>
+  <details class="resp">
+    <summary>Response</summary>
+    <div class="inner"><div class="p">Let me ground the plan in the current wiring before writing it.
+
+Two things in the current code shape this plan, so let me note them before writing it:
+
+- <strong>The explainer swap is nearly free</strong> — <code>LLM_BASE</code> already accepts any OpenAI-compatible endpoint, and Gemini publishes one. That&#x27;s env vars, not a rewrite.
+- <strong>Retrieval has a hidden local dependency</strong>: <code>embed_query</code> calls Ollama&#x27;s <code>embeddinggemma</code>. Hosting the backend means solving that, and switching embedder means <strong>re-embedding the whole corpus</strong> (~1,140 chunks), because mixing embedders breaks the vector space.
+
+Let me verify the Gemini specifics rather than assert them:</div><details class="acts"><summary>3 tool actions</summary><ol><li>Bash: Inspect the explainer call and retrieval dependencies</li><li>Bash: Check the embedding dependency and lexical fallback cost</li><li>ToolSearch: </li></ol></details></div>
+  </details>
+</section>
+<footer>Edited for length from the Claude Code sessions in which this project was built.</footer>
+</div></body></html>

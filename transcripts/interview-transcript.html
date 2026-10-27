@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Math Tutor — Interview Prep</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#666;--line:#e3e3e3;--acc:#0b5ed7;--code:#f6f8fa}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:40px 16px 80px}
+h1{font-size:1.9rem;margin:0 0 .3em}
+.sub{color:var(--mut);margin:0 0 2em}
+.toc{border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:2em}
+.toc ol{margin:0;padding-left:1.2em}
+.toc li{margin:.25em 0}
+.toc a{color:var(--acc);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.btns{margin:0 0 1.5em;display:flex;gap:10px}
+button{font:inherit;padding:6px 14px;border:1px solid var(--line);background:#fafafa;color:var(--fg);border-radius:7px;cursor:pointer}
+button:hover{background:#f0f0f0}
+.turn{border-top:1px solid var(--line);padding-top:1.4em;margin-top:1.8em}
+h2.tn{font-size:1.15rem;margin:0 0 .6em}
+.me{background:#f0f6ff;border-left:3px solid var(--acc);padding:12px 16px;border-radius:0 8px 8px 0}
+.me p{margin:.4em 0}
+details{margin-top:.8em}
+summary{cursor:pointer;color:var(--mut);font-size:.9rem;padding:6px 0}
+.resp{border-left:2px solid var(--line);padding-left:16px;margin-top:.6em}
+.say p{margin:.5em 0}
+.say h2{font-size:1.1rem;margin:1.2em 0 .4em}
+.say h3{font-size:1rem;margin:1.1em 0 .3em}
+.say hr{border:none;border-top:1px dashed var(--line);margin:1.4em 0}
+.say blockquote{margin:.8em 0;padding:.2em 14px;border-left:3px solid var(--line);color:var(--fg)}
+.say a{color:var(--acc)}
+.tool{color:var(--mut);font-size:.85rem;font-family:ui-monospace,Consolas,monospace;margin:.35em 0}
+pre{background:var(--code);border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:.84rem}
+code{font-family:ui-monospace,Consolas,monospace}
+:not(pre)>code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+table{border-collapse:collapse;margin:.6em 0;display:block;overflow-x:auto}
+td,th{border:1px solid var(--line);padding:4px 10px;text-align:left}
+@media(prefers-color-scheme:dark){
+:root{--bg:#16181c;--fg:#e6e6e6;--mut:#9aa0a6;--line:#2c3036;--acc:#6aa9ff;--code:#1d2026}
+.me{background:#1b2430}
+button{background:#22262c;color:#e6e6e6}
+button:hover{background:#2a2f36}}
+</style></head><body><div class="wrap">
+<h1>Syllabus-Grounded Maths Tutor — Interview Prep</h1>
+<p class="sub">Mock interview with Claude: 4 turns, each answer rated against the project's measured numbers</p>
+<div class="btns"><button onclick="document.querySelectorAll('details').forEach(function(d){d.open=true})">Expand all</button><button onclick="document.querySelectorAll('details').forEach(function(d){d.open=false})">Collapse all</button></div>
+<nav class="toc"><ol><li><a href="#t1">Turn 1</a> — Interview prep request</li><li><a href="#t2">Turn 2</a> — Round 1: the pitch, which parts are mine, what 84% means</li><li><a href="#t3">Turn 3</a> — Round 2: the four gates, the assembler, the repair loop</li><li><a href="#t4">Turn 4</a> — Round 3: LoRA, rsLoRA, choosing the checkpoint, and wrap-up</li></ol></nav>
+<section class="turn" id="t1"><h2 class="tn">Turn 1</h2><div class="me"><p>Look at the maths tutor app project and prepare me for the interview on this project by asking me question on this project.</p></div><details><summary>Claude's response</summary><div class="resp"><div class="tool">▸ PowerShell: List project folders</div><div class="tool">▸ Read: memory/math-tutor-next-step.md</div><div class="tool">▸ PowerShell: List files in math tutor folders</div><div class="tool">▸ PowerShell: Show filtered file listing</div><div class="tool">▸ PowerShell: Show rest of filtered file listing</div><div class="tool">▸ Bash: List source and modal folders</div><div class="say"><p>Reading the math tutor's report, README and spec so the questions match what you actually built.</p></div><div class="tool">▸ Read: math-tutor-app/report/report.md</div><div class="tool">▸ Read: math-tutor-app/README.md</div><div class="tool">▸ Bash: Read Modal deploy notes and hosting refs</div><div class="tool">▸ Bash: Read recent math tutor hosting fixes</div><div class="tool">▸ Bash: Read deployed Results page text</div><div class="tool">▸ Bash: Read deployed Architecture page text</div><div class="say"><p>I've read the report, the deployed Architecture and Results pages, and the Oct 27 hosting notes. Here's how this works: I ask three questions per round, you answer in your own words, and I grade each answer against what's actually in the project. I'll also point out what you missed. There are about 7 rounds: pitch, architecture, data, fine-tuning, retrieval and routing, evaluation, deployment, and some curveballs at the end.</p>
+<p><strong>Round 1: the opener</strong></p>
+<ol>
+<li>
+<p>Explain the project in 60 seconds. Then answer your professor's usual question: what can it do that ChatGPT can't?</p>
+</li>
+<li>
+<p>Which part of the system is your own trained model, and which parts aren't? Why isn't the explanation written by a model you fine-tuned?</p>
+</li>
+<li>
+<p>Your headline number is "0% → 84% render-valid." What exactly does that 84% measure, and what doesn't it prove?</p>
+</li>
+</ol></div></div></details></section><section class="turn" id="t2"><h2 class="tn">Turn 2</h2><div class="me"><p>1. It&#x27;s an NCERT maths tutor for classes 9–12: you type a question, it retrieves the right textbook chunks, writes a worked solution, and generates an interactive GeoGebra figure. The figure model is mine — QLoRA fine-tuned Qwen2.5-Coder on 907 render-verified constructions. It cannot leave the syllabus — retrieval is hard-filtered on (class, chapter) before ranking, so class 12 material is physically absent, not just discouraged. It produces draggable verified figures: base model scored 0/18 rendered, mine 92/110. And it says when it hasn&#x27;t checked — on the 10-problem eval nothing was refuted but only 3 could be confirmed, and the app shows that distinction instead of a tick.</p><p>2. The diagram model is mine (Qwen2.5-Coder with a QLoRA adapter) I trained on 907 GeoGebra constructions I created to train. The tagged NCERT corpus, the retriever, and the four-stage verification chain is also part of what I did. Not mine: the base model weights, the model, and the Gemini API that writes the explanation and solution. Hosted models already write NCERT-level explanations well, and the diagram model works on the input, not from the explanation. A 7B decodes at 7 tokens/second on my laptop which will make the process slow. </p><p>3. 84% resembles that 92 out 110 held out problems were rendered with actual working commands and no errors for that problem and 0% is the same base model without the adapter. It says nothing about whether the figure is correct for the problem — a valid triangle drawn for a circle question passes the gate.</p></div><details><summary>Claude's response</summary><div class="resp"><div class="tool">▸ Bash: Check where the 907 training records came from</div><div class="tool">▸ Bash: Read geom7b-v3 provenance section</div><div class="say"><p><strong>Round 1 scores</strong></p>
+<p><strong>Q1: 8/10.</strong> The pitch is strong. Three fixes:
+- You left out the core idea: <strong>the model outputs GeoGebra commands, not a picture</strong>. That's why a figure can be checked by code before the student sees it. One sentence of it belongs in the pitch.
+- 0/18 and 92/110 come from <strong>different test sets</strong>. The 0/18 is the untuned 7B with a retrieval prompt, on 18 figures from 5 topic nodes. On the same diagram eval set, the untuned model scored <strong>1/11 (9.1%)</strong>. Say "0–9% untuned vs 84% fine-tuned" so nobody catches you comparing apples to oranges.
+- Those baselines are untuned Qwen, <strong>not ChatGPT</strong>. Don't let it sound like ChatGPT scores 0%. Your real ChatGPT point is that nothing checks ChatGPT's figure before you see it.</p>
+<p><strong>Q2: 6/10.</strong>
+- You missed two of your own components: the <strong>router</strong> and the <strong>assembler</strong>. Both are deterministic code you wrote.
+- <strong>Know where the model came from.</strong> The adapter and the 907-row corpus come from your earlier <strong>geometry-gen</strong> project. In this project you converted its output format, built the gates and integrated it. If someone asks "did you train this for this project?", answer straight.
+- <strong>The live site serves the 14B</strong> (geom14b-v2, checkpoint-84, 32/37 = 86%). The report's 84% is the 7B. The site's Architecture page shows both, so expect "which one is running?"
+- "7 tok/s on my laptop" is weak, because the deployed app runs on a Modal GPU anyway. A stronger answer has three parts:
+  - your contribution is the figure model and the verification chain;
+  - you did build a 149-record explainer dataset, but 149 rows won't beat Gemini at writing prose;
+  - the GPU budget goes to the diagram model.
+- "The diagram model works from the question, not the explanation" was a good point. That's why the two calls run concurrently.</p>
+<p><strong>Q3: 7/10.</strong>
+- Name the pipeline: parse JSON → lint → build in a <strong>real GeoGebra applet in headless Chromium</strong>. The failure types it catches are rejected commands, nothing visible and undefined objects.
+- <strong>The 84% includes one repair round.</strong> The first pass was <strong>89/110 = 81%</strong>. If they ask "with retries?", the answer is yes, one.
+- Use your real example instead of a made-up one: a figure computed <strong>area_tri = 3.6 against a stated answer of 6</strong> and passed both gates.</p>
+<hr />
+<p><strong>Round 2: architecture and verification</strong></p>
+<ol start="4">
+<li>
+<p>Walk me through your four verification gates. Why do you need a real headless browser? Why isn't the linter enough?</p>
+</li>
+<li>
+<p>Why is the assembler plain code and not an LLM?</p>
+</li>
+<li>
+<p>A figure fails the gate. What happens next, and why is retrying at temperature 0 useless? If every attempt fails, what does the student actually see on the live site?</p>
+</li>
+</ol></div></div></details></section><section class="turn" id="t3"><h2 class="tn">Turn 3</h2><div class="me"><p>4. The four gates are:</p><p>One, answer_check recomputes the arithmetic from the given values with a tiny module importing only math, re, sys. Two, a JSON schema check - is the lesson object well formed in the required format. Three, a GeoGebra command check  do these commands exist with these parameters. Four, the render gate-  build the whole construction in a real browser. </p><p>We need a real browser because GeoGebra&#x27;s own parser is the only authority on its language.</p><p>I don&#x27;t know why the linter isn&#x27;t enough. Explain that to me</p><p>5. The assembler is a plain code because a figure is attached only if it passed the render gate. If an LLM made that call, it becomes probabilistic and involves a judgement in the decision. We need it to either pass or fail ..</p><p>6. The failure isn&#x27;t ignored at all. The specific error is fed back into the prompt and the model regenerates with that constraint in context. Up to five attempts, each one seeing why the last one failed. Retrying at temperature 0 useless because, same prompt in, same tokens out, identical failure five times. The different prompt is the one that helps correct it. If all the 5 attemps fail, the answer is not shown at all (for the diagram part).</p></div><details><summary>Claude's response</summary><div class="resp"><div class="say"><p><strong>Round 2 scores</strong></p>
+<p><strong>Q4: 6/10.</strong> You had all four gates in the right order. Two fixes:
+- Gate 3 needs specifics: an <strong>allowlist of 109 commands</strong>, checked for wrong arity and for references to objects never defined.
+- Gate 2 checks the <strong>figure object</strong>, not the whole lesson.</p>
+<p><strong>Why the linter isn't enough.</strong> A linter reads the text of the commands. It can't run the geometry. Many failures only show up once GeoGebra actually computes the construction:</p>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Linter sees</th>
+<th>Browser sees</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Point(circ)</code> three times</td>
+<td>3 valid commands</td>
+<td>All 3 points on the <strong>same coordinate</strong></td>
+</tr>
+<tr>
+<td>Variable named <code>rad</code> or <code>deg</code></td>
+<td>Valid assignment</td>
+<td>An <strong>undefined object</strong>. GeoGebra reserves those names for units, and raises no error</td>
+</tr>
+<tr>
+<td><code>Distance(S, L2)</code></td>
+<td>Allowed command</td>
+<td><strong>Rejected</strong> in the <code>graphing</code> app, accepted in <code>classic</code>. The command set depends on the app</td>
+</tr>
+<tr>
+<td>A construction that is valid but empty</td>
+<td>Passes</td>
+<td><strong>NOTHING_VISIBLE</strong>, the cause of 14 of the 18 baseline failures</td>
+</tr>
+</tbody>
+</table>
+<p>Your measured number: on the untuned baseline, the static linter caught only <strong>6 of 10 root causes</strong> (CI 31–83%). The other 4 needed the browser. So the linter is a cheap first filter, and the render gate is the one that decides.</p>
+<p><strong>Q5: 5/10.</strong> You're right that pass/fail must be deterministic, but you missed the main argument. The assembler sits <strong>after</strong> the last verifier. It merges two objects that have already been checked. An LLM in that spot could drop a concept, renumber ids or reword a verified explanation, and <strong>nothing downstream would catch it</strong>, because no check runs after it. The rule: anything after the last check must be deterministic, or the checks mean nothing.</p>
+<p><strong>Q6: 6/10.</strong> The feedback and temperature-0 parts were good. Two gaps:
+- <strong>You missed the temperature ladder: 0.0 → 0.3 → 0.5 → 0.7 → 0.9.</strong> The fix combines two levers: feeding back the failing step with the renderer's own error, and raising the temperature so attempts differ.
+- <strong>What the student sees: wrong for the live site.</strong> Since the Oct 27 fix:
+  - if no attempt passes, the closest one is shown under an amber <strong>"Best attempt — not verified"</strong> label, with the reason;
+  - only an empty board is withheld;
+  - retries stop about 100 s after the first attempt.</p>
+<p>The report and the site's own Architecture page still say "ships without one". Expect "doesn't that contradict 'a wrong figure is worse than no figure'?" Your defence: the rule is never to show an <strong>unchecked figure as if it were checked</strong>. A labelled best attempt with its failure reason doesn't mislead anyone.</p>
+<p>That Architecture page text still describes the old behaviour, so it's worth fixing before the Oct 29 demo. Say if you want me to do it.</p>
+<hr />
+<p><strong>Round 3: fine-tuning</strong></p>
+<ol start="7">
+<li>
+<p>What are LoRA and QLoRA, and what exactly did you train? How many parameters, and what fraction of the base model?</p>
+</li>
+<li>
+<p>What is rsLoRA, and why does your report call it the most dangerous detail in the project?</p>
+</li>
+<li>
+<p>Loss fell from 0.15 to 0.017 and you have no validation loss. How did you choose the checkpoint, and why isn't 0.017 proof of overfitting?</p>
+</li>
+</ol></div></div></details></section><section class="turn" id="t4"><h2 class="tn">Turn 4</h2><div class="me"><p>7. LoRA freezes the base and trains small low-rank adapters on the linear projections; QLoRA does that on a 4-bit quantised base so it fits free Kaggle GPUs — I trained 80.7 M adapter parameters, 1.06% of the 7B.</p><p>8. It scales the adapters by α/√r instead of α/r — at r=32, α=64 that&#x27;s 11.31 versus 2, so loading my adapter under the conventional rule applies it too weakly and fails silently with no error, just worse figures.</p><p>9. : I never selected on loss. I rendered every checkpoint and picked by render rate on held-out problems, and 0.017 isn&#x27;t overfitting evidence because the 86% on 32 unseen concept families beats the 82% on seen ones.</p><p>that&#x27;s all done with the interview.</p></div><details><summary>Claude's response</summary><div class="resp"><div class="say"><p><strong>Round 3 scores</strong></p>
+<p><strong>Q7: 8/10.</strong> That's correct. To get full marks, add:
+- the formula: <code>W' = W + γ·BA</code>, with r = 32;
+- where the adapters sit: all 7 linear modules (q, k, v, o, gate, up, down) in 28 layers, so 392 tensors;
+- the setup: a 4-bit NF4 base on a 16 GB T4.</p>
+<p><strong>Q8: 9/10.</strong> You had the right direction (5.66× too weak) and the right risk: it fails silently. Add the fix: you check the loader against a generation you already know is good.</p>
+<p><strong>Q9: 8/10.</strong> The logic is right. Two additions:
+- <strong>The best checkpoint wasn't the last one.</strong> For the 7B, step 140 was chosen, not step 171. For the 14B you serve, checkpoint 84 scored 86%, against 78% at step 140 and 70% at step 112.
+- <strong>Careful with "no validation loss".</strong> It never ran because <code>eval_steps</code> was 500 and the run only had 171 steps. Say exactly that, then argue that render rate is the better test anyway. Don't claim you planned it that way; an examiner who reads the config will notice.</p>
+<hr />
+<p><strong>Overall: about 7/10. These are the points to revise before the interview:</strong></p>
+<ol>
+<li><strong>Where the model came from:</strong> it was trained in your <strong>geometry-gen</strong> project. The live site serves the <strong>14B</strong>; the report evaluates the <strong>7B</strong>.</li>
+<li><strong>The baselines use different test sets.</strong> The 0/18 and the 1/11 (9.1%) come from different sets. Don't put 0/18 next to 92/110 as if they were measured the same way.</li>
+<li><strong>The 84% includes one repair round.</strong> The first pass was 81%.</li>
+<li><strong>The live site now shows "Best attempt — not verified"</strong> figures, which the report doesn't describe. Have your defence ready.</li>
+<li><strong>The assembler:</strong> it sits after the last check, so anything it changed would never be checked.</li>
+<li><strong>Linter vs browser:</strong> the linter caught only 6 of 10 root causes. Most baseline failures were NOTHING_VISIBLE, which only the browser can see.</li>
+</ol>
+<p>We didn't get to retrieval and routing (RRF, the hard filter, the three negative results), data (private-use Unicode glyphs, why <code>MAX_SEQ_LEN</code> is 2048) or deployment. The report's viva appendix answers those: Q3–Q4, Q14–Q17 and Q23 in <a href="math-tutor-app/report/report.md">report.md</a>. I can run those rounds any time.</p></div></div></details></section>
+</div></body></html>
